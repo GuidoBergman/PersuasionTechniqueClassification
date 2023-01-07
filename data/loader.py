@@ -29,7 +29,7 @@ def get_source(force_redownload: bool = False) -> None:
 
         _download_file(SRC_URL, fname)
         _extract_file(fname, SRC_DATA_FOLDER)
-    
+
     else:
         print("### data already downloaded, skipping download ###")
 
@@ -40,8 +40,7 @@ def _extract_file(src_file: str, path: Path) -> None:
     src_path = SRC_DATA_FOLDER / src_file
     with ZipFile(src_path, "r") as zip_f:
         for file in tqdm(iterable=zip_f.namelist(), total=len(zip_f.namelist()), desc=f"unpacking {src_file}"):
-            #trg_path = path / file
-            zip_f.extract(member=file)
+            zip_f.extract(member=file, path=path)
 
 
 def _download_file(url: str, filename: str) -> None:
