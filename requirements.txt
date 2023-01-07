@@ -1,0 +1,10 @@
+datasets
+tqdm
+numpy
+matplotlib
+pandas
+transformers
+torch
+tokenizers
+sentencepiece
+requests
