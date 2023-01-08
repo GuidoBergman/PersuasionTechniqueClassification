@@ -5,12 +5,22 @@ from tqdm import tqdm
 from pathlib import Path
 from functools import partial
 from zipfile import ZipFile
+import lxml.etree as ET
+from datasets import Dataset, load_from_disk
 
 DATA_FOLDER = Path(__file__).parent.resolve()
 SRC_DATA_FOLDER = DATA_FOLDER / "src"
 DATASET_FOLDER = DATA_FOLDER / "datasets"
 
 SRC_URL = "https://pmb.let.rug.nl/releases/pmb-4.0.0.zip"
+
+
+def load_data(langs: list, quality: list, force_regen: bool = False) -> Dataset:
+    """load the pmb data as dataset in the specified configuration"""
+    get_source(force_regen)
+    ds = create_dataset(langs, quality, force_regen)
+
+    return ds
 
 
 def get_source(force_redownload: bool = False) -> None:
@@ -32,6 +42,99 @@ def get_source(force_redownload: bool = False) -> None:
 
     else:
         print("### data already downloaded, skipping download ###")
+
+
+def create_dataset(langs: tuple, quality: tuple, force_regen: bool = False) -> Dataset:
+    """creates a dataset from the PMB data files"""
+
+    if len(langs) == 0:
+        raise RuntimeError(
+            "at least one language should be specified when creating the dataset!")
+
+    if len(quality) == 0:
+        raise RuntimeError(
+            "at least one quality standard has to be specified when creating the dataset!")
+
+    _make_dir_if_not_exists(DATASET_FOLDER)
+
+    ds_name = ".".join(langs) + "_" + ".".join(quality)
+
+    ds_path = DATASET_FOLDER / ds_name
+    if not Path(ds_path).exists() or force_regen:
+        dataset = Dataset.from_generator(_dataset_gen, gen_kwargs={
+                                         "languages": langs, "standards": quality}, config_name=ds_name)
+        dataset.save_to_disk(ds_path)
+    else:
+        dataset = load_from_disk(ds_path)
+
+    return dataset
+
+
+def _dataset_gen(languages: tuple, standards: tuple) -> dict:
+    """generator function to create the dataset from the pmb data"""
+
+    data_path = SRC_DATA_FOLDER / "pmb-4.0.0" / "data"
+
+    for lang in languages:
+
+        for stand in standards:
+
+            path = data_path / lang / stand
+
+            for part_dir in path.iterdir():
+                part = part_dir.stem
+
+                for doc_dir in part_dir.iterdir():
+                    doc = doc_dir.stem
+
+                    xml_path = doc_dir / f"{lang}.drs.xml"
+
+                    tok_dict = _parse_drs_xml(xml_path)
+
+                    tok_dict["lang"] = lang
+                    tok_dict["quality"] = stand
+                    tok_dict["id"] = f"{part}/{doc}"
+
+                    yield tok_dict
+
+
+def _parse_drs_xml(filepath: Path) -> dict:
+    """parses the contents of a single DRS file"""
+
+    drs_dict = {
+        "tok": [],
+        "verbnet": [],
+        "sem": []
+    }
+
+    with open(filepath) as file:
+        tree = ET.parse(file)
+        root = tree.getroot()
+
+        taggedtokens = root.find("xdrs/taggedtokens")
+
+        for tagtoken in taggedtokens:
+            verbnet = []
+            tok = ""
+            sem = ""
+            for tag in tagtoken.iter("tag"):
+                tag_type = tag.get("type")
+                if tag_type == "verbnet":
+                    if tag.get("n") != "0":
+                        verbnet = tag.text[1:-1].split(",")
+                elif tag_type == "tok":
+                    tok = tag.text.replace("~", " ")
+                elif tag_type == "sem":
+                    sem = tag.text
+
+            if tok == "ø":
+                continue
+            else:
+                drs_dict["verbnet"].append(verbnet)
+                drs_dict["tok"].append(tok)
+                drs_dict["sem"].append(sem)
+
+    return drs_dict
 
 
 def _extract_file(src_file: str, path: Path) -> None:
@@ -67,4 +170,8 @@ def _make_dir_if_not_exists(path):
 
 
 if __name__ == "__main__":
-    get_source()
+    ds = load_data(("en",), ("gold", "silver"))
+
+    print(ds.shape)
+    print(ds.column_names)
+    print(ds[0])

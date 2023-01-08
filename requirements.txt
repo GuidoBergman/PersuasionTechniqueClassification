@@ -8,3 +8,4 @@ torch
 tokenizers
 sentencepiece
 requests
+lxml
