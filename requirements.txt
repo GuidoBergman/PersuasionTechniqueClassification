@@ -9,3 +9,6 @@ tokenizers
 sentencepiece
 requests
 lxml
+pyyaml
+evaluate
+scikit-learn

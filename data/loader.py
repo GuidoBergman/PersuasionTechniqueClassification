@@ -6,11 +6,13 @@ from pathlib import Path
 from functools import partial
 from zipfile import ZipFile
 import lxml.etree as ET
-from datasets import Dataset, load_from_disk
+import yaml
+from datasets import Dataset, load_from_disk, Features, Value, Sequence, ClassLabel
 
 DATA_FOLDER = Path(__file__).parent.resolve()
 SRC_DATA_FOLDER = DATA_FOLDER / "src"
 DATASET_FOLDER = DATA_FOLDER / "datasets"
+ROLE_PATH = DATA_FOLDER / "pmb_roles.yaml"
 
 SRC_URL = "https://pmb.let.rug.nl/releases/pmb-4.0.0.zip"
 
@@ -61,8 +63,28 @@ def create_dataset(langs: tuple, quality: tuple, force_regen: bool = False) -> D
 
     ds_path = DATASET_FOLDER / ds_name
     if not Path(ds_path).exists() or force_regen:
-        dataset = Dataset.from_generator(_dataset_gen, gen_kwargs={
+
+        with open(ROLE_PATH) as file:
+            pmb_roles = yaml.safe_load(file)
+
+        verbnet_roles = ["0"] + pmb_roles["verbnet"]["event"] + \
+            pmb_roles["verbnet"]["concept"] + \
+            pmb_roles["verbnet"]["time"] + pmb_roles["verbnet"]["other"]
+
+        ds_features = Features({
+            "tok": Sequence(feature=Value(dtype="string")),
+            "verbnet": Sequence(feature=Sequence(feature=ClassLabel(num_classes=len(verbnet_roles), names=verbnet_roles))),
+            "sem": Sequence(feature=Value(dtype="string")),
+            "lang": ClassLabel(num_classes=len(pmb_roles["language"]), names=pmb_roles["language"]),
+            "quality": ClassLabel(num_classes=len(pmb_roles["quality"]), names=pmb_roles["quality"]),
+            "id": Value(dtype="string")
+        })
+
+        dataset = Dataset.from_generator(_dataset_gen, features=ds_features, gen_kwargs={
                                          "languages": langs, "standards": quality}, config_name=ds_name)
+
+        dataset = dataset.train_test_split(test_size=0.1, seed=42)
+
         dataset.save_to_disk(ds_path)
     else:
         dataset = load_from_disk(ds_path)
@@ -122,6 +144,8 @@ def _parse_drs_xml(filepath: Path) -> dict:
                 if tag_type == "verbnet":
                     if tag.get("n") != "0":
                         verbnet = tag.text[1:-1].split(",")
+                    else:
+                        verbnet = ["0"]
                 elif tag_type == "tok":
                     tok = tag.text.replace("~", " ")
                 elif tag_type == "sem":
@@ -174,4 +198,4 @@ if __name__ == "__main__":
 
     print(ds.shape)
     print(ds.column_names)
-    print(ds[0])
+    print(ds["train"][0])

@@ -2,6 +2,8 @@
 
 data/src/
 data/datasets/
+models/*
+!models/.gitkeep
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,visualstudiocode,jupyternotebooks,osx,pycharm,windows
