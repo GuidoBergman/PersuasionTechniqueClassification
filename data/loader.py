@@ -17,7 +17,7 @@ ROLE_PATH = DATA_FOLDER / "pmb_roles.yaml"
 SRC_URL = "https://pmb.let.rug.nl/releases/pmb-4.0.0.zip"
 
 
-def load_data(langs: list, quality: list, force_regen: bool = False) -> Dataset:
+def load_data(langs: tuple, quality: tuple, force_regen: bool = False) -> Dataset:
     """load the pmb data as dataset in the specified configuration"""
     get_source(force_regen)
     ds = create_dataset(langs, quality, force_regen)
