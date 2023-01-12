@@ -75,6 +75,7 @@ def create_dataset(langs: tuple, quality: tuple, force_regen: bool = False) -> D
             "tok": Sequence(feature=Value(dtype="string")),
             "verbnet": Sequence(feature=Sequence(feature=ClassLabel(num_classes=len(verbnet_roles), names=verbnet_roles))),
             "sem": Sequence(feature=Value(dtype="string")),
+            "cat": Sequence(feature=Value(dtype="string")),
             "lang": ClassLabel(num_classes=len(pmb_roles["language"]), names=pmb_roles["language"]),
             "quality": ClassLabel(num_classes=len(pmb_roles["quality"]), names=pmb_roles["quality"]),
             "id": Value(dtype="string")
@@ -126,7 +127,8 @@ def _parse_drs_xml(filepath: Path) -> dict:
     drs_dict = {
         "tok": [],
         "verbnet": [],
-        "sem": []
+        "sem": [],
+        "cat": []
     }
 
     with open(filepath) as file:
@@ -139,6 +141,7 @@ def _parse_drs_xml(filepath: Path) -> dict:
             verbnet = []
             tok = ""
             sem = ""
+            cat = ""
             for tag in tagtoken.iter("tag"):
                 tag_type = tag.get("type")
                 if tag_type == "verbnet":
@@ -150,6 +153,8 @@ def _parse_drs_xml(filepath: Path) -> dict:
                     tok = tag.text.replace("~", " ")
                 elif tag_type == "sem":
                     sem = tag.text
+                elif tag_type == "cat":
+                    cat = tag.text
 
             if tok == "ø":
                 continue
@@ -157,6 +162,7 @@ def _parse_drs_xml(filepath: Path) -> dict:
                 drs_dict["verbnet"].append(verbnet)
                 drs_dict["tok"].append(tok)
                 drs_dict["sem"].append(sem)
+                drs_dict["cat"].append(cat)
 
     return drs_dict
 
