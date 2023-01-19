@@ -1,5 +1,5 @@
 import torch.backends.cuda as cuda_back
-import torch.backends.mps as mps
+#import torch.backends.mps as mps
 import torch.cuda as cuda
 
 
@@ -8,7 +8,7 @@ def get_device() -> str:
 
     if cuda.is_available() and cuda_back.is_built():
         return "cuda"
-    elif mps.is_available() and mps.is_built():
-        return "cpu"
+    # elif mps.is_available() and mps.is_built():
+        #return "cpu"
     else:
         return "cpu"

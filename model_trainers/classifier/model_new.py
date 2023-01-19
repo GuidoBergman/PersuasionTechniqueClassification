@@ -13,10 +13,16 @@ from torch.nn import BCEWithLogitsLoss
 
 from ..utils import get_device, make_dir_if_not_exists
 
+from sklearn.metrics import classification_report
+
 MODEL_FOLDER = Path(__file__).parent.parent.parent.resolve() / "models"
 
 
 def train_classifier(dataset: Dataset, num_epochs: int = 3):
+
+    # uncomment for local testing
+    # dataset["train"] = dataset["train"].select(range(64))
+    # dataset["test"] = dataset["test"].select(range(64))
 
     label_list = dataset["train"].features["verbnet"].feature.feature.names
 
@@ -80,29 +86,37 @@ def train_classifier(dataset: Dataset, num_epochs: int = 3):
         epoch_loss = running_loss / len(train_dataloader)
         progress_bar.write(f"Epoch {epoch}, Loss: {epoch_loss}")
 
-        # model.eval()
+        model.eval()
 
-        # pred = []
-        # label = []
+        preds = []
+        true_labels = []
 
-        # for batch in eval_dataloader:
+        for batch in eval_dataloader:
 
-        #     labels = batch.pop("labels")
+            labels = batch.pop("labels")
 
-        #     batch = {k: v.to(device) for k, v in batch.items()}
+            batch = {k: v.to(device) for k, v in batch.items()}
 
-        #     with torch.no_grad():
-        #         outputs = model(**batch)
+            with torch.no_grad():
+                outputs = model(**batch)
 
-        #     ignore_index = labels.mean(-1).squeeze().tolist()
+            ignore_index = labels.mean(-1).squeeze().int()
 
-        #     flat_outputs = outputs.logits[ignore_index != -100]
-        #     flat_labels = labels[ignore_index != -100]
+            flat_outputs = outputs.logits.squeeze()[ignore_index != -100]
+            flat_labels = labels.squeeze()[ignore_index != -100]
 
+            pred = flat_outputs.heaviside(torch.tensor([0.0])).int().tolist()
+            true_label = flat_labels.int().tolist()
+
+            preds.extend(pred)
+            true_labels.extend(true_label)
+
+        progress_bar.write(classification_report(
+            y_true=true_labels, y_pred=preds, target_names=label_list, zero_division=0))
 
     make_dir_if_not_exists(MODEL_FOLDER)
 
-    model.save_pretrained(MODEL_FOLDER / "srl-classifier" / "model")
+    model.save_pretrained(MODEL_FOLDER / "srl-classifier" / "model_new")
 
 
 def _tokenize_data(dataset: Dataset, tokenizer: RobertaTokenizerFast, label_list: list, label_all_tokens: bool = True) -> Dataset:
