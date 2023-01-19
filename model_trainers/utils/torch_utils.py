@@ -9,6 +9,6 @@ def get_device() -> str:
     if cuda.is_available() and cuda_back.is_built():
         return "cuda"
     elif mps.is_available() and mps.is_built():
-        return "mps"
+        return "cpu"
     else:
         return "cpu"

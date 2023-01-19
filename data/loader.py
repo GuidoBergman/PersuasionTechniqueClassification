@@ -64,7 +64,7 @@ def create_dataset(langs: tuple, quality: tuple, force_regen: bool = False) -> D
     ds_path = DATASET_FOLDER / ds_name
     if not Path(ds_path).exists() or force_regen:
 
-        with open(ROLE_PATH) as file:
+        with open(ROLE_PATH, "r", encoding="utf-8") as file:
             pmb_roles = yaml.safe_load(file)
 
         verbnet_roles = ["0"] + pmb_roles["verbnet"]["event"] + \
@@ -131,7 +131,7 @@ def _parse_drs_xml(filepath: Path) -> dict:
         "cat": []
     }
 
-    with open(filepath) as file:
+    with open(filepath, "r", encoding="utf-8") as file:
         tree = ET.parse(file)
         root = tree.getroot()
 
