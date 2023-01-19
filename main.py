@@ -31,7 +31,7 @@ if __name__ == "__main__":
     elif options.action == "train_classifier":
         ds = loader.load_data(options.lang, options.qual, options.force_new)
         train_classifier(ds)
-        evaluate_classifier(ds)
+        #evaluate_classifier(ds)
     elif options.action == "eval_classifier":
         ds = loader.load_data(options.lang, options.qual, options.force_new)
         evaluate_classifier(ds)
