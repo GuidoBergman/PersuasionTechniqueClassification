@@ -64,19 +64,17 @@ def train_classifier(dataset: Dataset, num_epochs: int = 3):
             running_loss = 0.0
             labels = batch.pop("labels")
 
-            labels.to(device)
-
             batch = {k: v.to(device) for k, v in batch.items()}
 
             outputs = model(**batch)
 
-            ignore_index = labels.mean(-1).squeeze().int().to(device)
+            ignore_index = labels.mean(-1).squeeze().int()
 
             flat_outputs = outputs.logits.squeeze()[ignore_index != -100]
             flat_labels = labels.squeeze()[ignore_index != -100]
 
-            flat_labels.to(device)
-            flat_outputs.to(device)
+            flat_outputs = flat_outputs.to(device)
+            flat_labels = flat_labels.to(device)
 
             loss = loss_fct(flat_outputs, flat_labels)
             loss.backward()
@@ -110,7 +108,8 @@ def train_classifier(dataset: Dataset, num_epochs: int = 3):
             flat_outputs = outputs.logits.squeeze()[ignore_index != -100]
             flat_labels = labels.squeeze()[ignore_index != -100]
 
-            pred = flat_outputs.heaviside(torch.tensor([0.0], device=device)).int().tolist()
+            pred = flat_outputs.heaviside(torch.tensor(
+                [0.0], device=device)).int().tolist()
             true_label = flat_labels.int().tolist()
 
             preds.extend(pred)
