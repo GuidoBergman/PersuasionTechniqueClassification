@@ -70,13 +70,13 @@ def train_classifier(dataset: Dataset, num_epochs: int = 3):
 
             outputs = model(**batch)
 
-            ignore_index = labels.mean(-1).squeeze().int()
+            ignore_index = labels.mean(-1).squeeze().int().to(device)
 
             flat_outputs = outputs.logits.squeeze()[ignore_index != -100]
             flat_labels = labels.squeeze()[ignore_index != -100]
 
-            #flat_labels.to(device)
-            #flat_outputs.to(device)
+            flat_labels.to(device)
+            flat_outputs.to(device)
 
             loss = loss_fct(flat_outputs, flat_labels)
             loss.backward()
