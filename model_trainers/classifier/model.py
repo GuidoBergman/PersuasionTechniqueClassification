@@ -22,8 +22,8 @@ MODEL_FOLDER = Path(__file__).parent.parent.parent.resolve() / "models"
 def train_classifier(dataset: Dataset, num_epochs: int = 3, weighted: bool = False):
 
     # uncomment for local testing
-    dataset["train"] = dataset["train"].select(range(64))
-    dataset["test"] = dataset["test"].select(range(64))
+    # dataset["train"] = dataset["train"].select(range(64))
+    # dataset["test"] = dataset["test"].select(range(64))
 
     label_list = dataset["train"].features["verbnet"].feature.feature.names
 
@@ -128,7 +128,7 @@ def train_classifier(dataset: Dataset, num_epochs: int = 3, weighted: bool = Fal
 
     make_dir_if_not_exists(MODEL_FOLDER)
 
-    model.save_pretrained(MODEL_FOLDER / "srl-classifier" / "model_test")
+    model.save_pretrained(MODEL_FOLDER / "srl-classifier" / "model")
 
 
 def evaluate_classifier(dataset: Dataset):
