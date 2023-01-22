@@ -19,7 +19,7 @@ from sklearn.metrics import classification_report
 MODEL_FOLDER = Path(__file__).parent.parent.parent.resolve() / "models"
 
 
-def train_classifier(dataset: Dataset, num_epochs: int = 3, weighted: bool = False):
+def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, weighted: bool = False):
 
     # uncomment for local testing
     # dataset["train"] = dataset["train"].select(range(64))
@@ -128,10 +128,10 @@ def train_classifier(dataset: Dataset, num_epochs: int = 3, weighted: bool = Fal
 
     make_dir_if_not_exists(MODEL_FOLDER)
 
-    model.save_pretrained(MODEL_FOLDER / "srl-classifier" / "model")
+    model.save_pretrained(MODEL_FOLDER / "srl-classifier" / model_name)
 
 
-def evaluate_classifier(dataset: Dataset):
+def evaluate_classifier(dataset: Dataset, model_name: str):
 
     label_list = dataset["train"].features["verbnet"].feature.feature.names
 
@@ -141,7 +141,7 @@ def evaluate_classifier(dataset: Dataset):
     tokenized_data = _tokenize_data(dataset, tokenizer, label_list)
 
     model = RobertaForTokenClassification.from_pretrained(
-        MODEL_FOLDER / "srl-classifier" / "model",  num_labels=len(label_list))
+        MODEL_FOLDER / "srl-classifier" / model_name,  num_labels=len(label_list))
 
     device = get_device()
     print(f"### evaluating model on {device} ###")

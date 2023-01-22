@@ -29,6 +29,9 @@ parser.add_argument("--epochs", type=int, default=3,
 parser.add_argument("--weighted", action="store_true", default=False,
                     help="Weigh the loss function according to the class distribution in the data")
 
+parser.add_argument("--name", type=str, default="model",
+                    help="The name to use for the model")
+
 
 if __name__ == "__main__":
 
@@ -38,10 +41,10 @@ if __name__ == "__main__":
         loader.load_data(options.lang, options.qual, options.force_new)
     elif options.action == "train_classifier":
         ds = loader.load_data(options.lang, options.qual, options.force_new)
-        train_classifier(ds, options.epochs, options.weighted)
+        train_classifier(ds, options.name, options.epochs, options.weighted)
         # evaluate_classifier(ds)
     elif options.action == "eval_classifier":
         ds = loader.load_data(options.lang, options.qual, options.force_new)
-        evaluate_classifier(ds)
+        evaluate_classifier(ds, options.name)
     else:
         print("no valid action selected!")
