@@ -2,6 +2,7 @@ import argparse
 from data import loader
 from model_trainers.classifier import train_classifier, evaluate_classifier
 
+
 def tuple_arg(arg: str) -> tuple:
     arg_list = arg.split(",")
     return tuple(arg_list)
@@ -13,7 +14,7 @@ parser = argparse.ArgumentParser(prog="PMB Semantic Role Tagger",
 parser.add_argument("--action", type=str,
                     choices=["load_data", "train_classifier", "eval_classifier"], help="The specific module to run", required=True)
 
-parser.add_argument("--force_new", type=bool, default=False,
+parser.add_argument("--force_new", action="store_true", default=False,
                     help="Force a redownload and regeneration of the source data")
 
 parser.add_argument("--lang", type=tuple_arg, default="en",
@@ -21,6 +22,13 @@ parser.add_argument("--lang", type=tuple_arg, default="en",
 
 parser.add_argument("--qual", type=tuple_arg, default="gold,silver",
                     help="The quality partitions to use for the classification. Multiple partitions can be specified with a comma in between (make sure not to include whitespace between entries)")
+
+parser.add_argument("--epochs", type=int, default=3,
+                    help="The number of epochs the model will be trained")
+
+parser.add_argument("--weighted", action="store_true", default=False,
+                    help="Weigh the loss function according to the class distribution in the data")
+
 
 if __name__ == "__main__":
 
@@ -30,8 +38,8 @@ if __name__ == "__main__":
         loader.load_data(options.lang, options.qual, options.force_new)
     elif options.action == "train_classifier":
         ds = loader.load_data(options.lang, options.qual, options.force_new)
-        train_classifier(ds)
-        #evaluate_classifier(ds)
+        train_classifier(ds, options.epochs, options.weighted)
+        # evaluate_classifier(ds)
     elif options.action == "eval_classifier":
         ds = loader.load_data(options.lang, options.qual, options.force_new)
         evaluate_classifier(ds)

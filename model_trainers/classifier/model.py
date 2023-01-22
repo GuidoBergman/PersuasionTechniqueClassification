@@ -11,18 +11,19 @@ from torch.utils.data import DataLoader
 from torch.optim import AdamW
 from torch.nn import BCEWithLogitsLoss
 
-from ..utils import get_device, make_dir_if_not_exists
+# pylint: disable-next=relative-beyond-top-level
+from ..utils import get_device, make_dir_if_not_exists, get_class_weights
 
 from sklearn.metrics import classification_report
 
 MODEL_FOLDER = Path(__file__).parent.parent.parent.resolve() / "models"
 
 
-def train_classifier(dataset: Dataset, num_epochs: int = 3):
+def train_classifier(dataset: Dataset, num_epochs: int = 3, weighted: bool = False):
 
     # uncomment for local testing
-    # dataset["train"] = dataset["train"].select(range(64))
-    # dataset["test"] = dataset["test"].select(range(64))
+    dataset["train"] = dataset["train"].select(range(64))
+    dataset["test"] = dataset["test"].select(range(64))
 
     label_list = dataset["train"].features["verbnet"].feature.feature.names
 
@@ -32,7 +33,10 @@ def train_classifier(dataset: Dataset, num_epochs: int = 3):
     tokenized_data = _tokenize_data(dataset, tokenizer, label_list)
 
     model = RobertaForTokenClassification.from_pretrained(
-        "roberta-base", num_labels=len(label_list))
+        "roberta-base", num_labels=len(label_list),
+        id2label={i: l for i, l in enumerate(label_list)},
+        label2id={l: i for i, l in enumerate(label_list)}
+    )
 
     device = get_device()
     print(f"### training model on {device} ###")
@@ -52,7 +56,11 @@ def train_classifier(dataset: Dataset, num_epochs: int = 3):
         name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps
     )
 
-    loss_fct = BCEWithLogitsLoss()
+    loss_weights = torch.ones(len(label_list), device=device)
+    if weighted:
+        loss_weights = get_class_weights(dataset["train"], label_list)
+
+    loss_fct = BCEWithLogitsLoss(pos_weight=loss_weights)
 
     progress_bar = tqdm(range(num_training_steps))
 
@@ -120,7 +128,7 @@ def train_classifier(dataset: Dataset, num_epochs: int = 3):
 
     make_dir_if_not_exists(MODEL_FOLDER)
 
-    model.save_pretrained(MODEL_FOLDER / "srl-classifier" / "model")
+    model.save_pretrained(MODEL_FOLDER / "srl-classifier" / "model_test")
 
 
 def evaluate_classifier(dataset: Dataset):
