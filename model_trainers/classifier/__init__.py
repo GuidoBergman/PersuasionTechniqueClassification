@@ -1,4 +1,3 @@
-from .model import evaluate_classifier
-from .model_new import train_classifier
+from .model import train_classifier, evaluate_classifier
 
 __all__ = ["train_classifier", "evaluate_classifier"]
