@@ -25,6 +25,11 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, wei
     # dataset["train"] = dataset["train"].select(range(64))
     # dataset["test"] = dataset["test"].select(range(64))
 
+    # for checking if verbnet role correctly at index
+    test_roles_ordered = []
+    for i in dataset["test"]:
+        test_roles_ordered.append(i["verbnet"])
+
     label_list = dataset["train"].features["verbnet"].feature.feature.names
 
     tokenizer = RobertaTokenizerFast.from_pretrained(
@@ -46,7 +51,7 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, wei
         tokenized_data["train"], shuffle=True, batch_size=1)
 
     eval_dataloader = DataLoader(
-        tokenized_data["test"], shuffle=True, batch_size=1)
+        tokenized_data["test"], shuffle=False, batch_size=1)
 
     optimizer = AdamW(model.parameters(), lr=2e-5)
 
@@ -101,6 +106,9 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, wei
 
         preds = []
         true_labels = []
+        curr_sentence = 0
+        pred_orders = []
+
 
         for batch in eval_dataloader:
 
@@ -120,8 +128,27 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, wei
                 [0.0], device=device)).int().tolist()
             true_label = flat_labels.int().tolist()
 
+            # check if predictions are correct at position
+            # does not pick from the top ones
+            pred_order = []
+            for i in range(len(pred)):
+                possible_roles = [j for j in range(len(pred[i])) if pred[i][j] == 1]
+                correct_pos = []
+                for role in test_roles_ordered[curr_sentence][i]:
+                    if role in possible_roles:
+                        correct_pos.append(True)
+                    else:
+                        correct_pos.append(False)
+                pred_order.append(correct_pos)
+
+            print(f'original sentence: {dataset["test"][curr_sentence]["tok"]}')
+            print(f'original labels: {dataset["test"][curr_sentence]["verbnet"]}')
+            print(f"Predicted labels correct?: {pred_order}")
+            curr_sentence += 1
+
             preds.extend(pred)
             true_labels.extend(true_label)
+            pred_orders.append(pred_order)
 
         progress_bar.write(classification_report(
             y_true=true_labels, y_pred=preds, target_names=label_list, zero_division=0))
@@ -133,6 +160,11 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, wei
 
 def evaluate_classifier(dataset: Dataset, model_name: str):
 
+    # for checking if role correct at index
+    test_roles_ordered = []
+    for i in dataset["test"]:
+        test_roles_ordered.append(i["verbnet"])
+        
     label_list = dataset["train"].features["verbnet"].feature.feature.names
 
     tokenizer = RobertaTokenizerFast.from_pretrained(
@@ -148,12 +180,14 @@ def evaluate_classifier(dataset: Dataset, model_name: str):
     model.to(device)
 
     eval_dataloader = DataLoader(
-        tokenized_data["test"], shuffle=True, batch_size=1)
+        tokenized_data["test"], shuffle=False, batch_size=1)
 
     model.eval()
 
     preds = []
     true_labels = []
+    curr_sentence = 0
+    pred_orders = []
 
     progress_bar = tqdm(range(len(eval_dataloader)))
 
@@ -175,8 +209,27 @@ def evaluate_classifier(dataset: Dataset, model_name: str):
             [0.0], device=device)).int().tolist()
         true_label = flat_labels.int().tolist()
 
+        # check if predictions are correct at position
+        # does not pick from the top ones
+        pred_order = []
+        for i in range(len(pred)):
+            possible_roles = [j for j in range(len(pred[i])) if pred[i][j] == 1]
+            correct_pos = []
+            for role in test_roles_ordered[curr_sentence][i]:
+                if role in possible_roles:
+                    correct_pos.append(True)
+                else:
+                    correct_pos.append(False)
+            pred_order.append(correct_pos)
+
+        print(f'original sentence: {dataset["test"][curr_sentence]["tok"]}')
+        print(f'original labels: {dataset["test"][curr_sentence]["verbnet"]}')
+        print(f"Predicted labels correct?: {pred_order}")
+        curr_sentence += 1
+
         preds.extend(pred)
         true_labels.extend(true_label)
+        pred_orders.append(pred_order)
 
         progress_bar.update(1)
 
