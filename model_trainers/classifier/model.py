@@ -131,7 +131,7 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, wei
             # check if predictions are correct at position
             # does not pick from the top ones
             pred_order = []
-            for i in range(len(pred)):
+            for i in range(len(dataset["test"][curr_sentence]["verbnet"])):
                 possible_roles = [j for j in range(len(pred[i])) if pred[i][j] == 1]
                 correct_pos = []
                 for role in test_roles_ordered[curr_sentence][i]:
@@ -212,7 +212,7 @@ def evaluate_classifier(dataset: Dataset, model_name: str):
         # check if predictions are correct at position
         # does not pick from the top ones
         pred_order = []
-        for i in range(len(pred)):
+        for i in range(len(dataset["test"][curr_sentence]["verbnet"])):
             possible_roles = [j for j in range(len(pred[i])) if pred[i][j] == 1]
             correct_pos = []
             for role in test_roles_ordered[curr_sentence][i]:
