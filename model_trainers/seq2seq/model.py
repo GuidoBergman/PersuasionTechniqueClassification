@@ -44,8 +44,8 @@ def train_generator(dataset: Dataset, model_name: str, num_epochs: int = 3):
         evaluation_strategy="epoch",
         save_strategy="no",
         learning_rate=1e-4,
-        per_device_train_batch_size=32,
-        per_device_eval_batch_size=32,
+        per_device_train_batch_size=16,
+        per_device_eval_batch_size=16,
         num_train_epochs=num_epochs,
         weight_decay=0.01,
         predict_with_generate=True,
@@ -104,7 +104,7 @@ def _tokenize_data(ds: Dataset, tokenizer: T5Tokenizer, label_list: list) -> Dat
     def tokenize(examples):
 
         inputs = [" ".join(example) for example in examples["tok"]]
-        tokens = tokenizer(inputs)
+        tokens = tokenizer(inputs, truncation=True)
 
         labels = []
         for sen_roles in examples["verbnet"]:
@@ -116,7 +116,7 @@ def _tokenize_data(ds: Dataset, tokenizer: T5Tokenizer, label_list: list) -> Dat
 
             labels.append(" ".join(label))
 
-        tok_labels = tokenizer(labels)
+        tok_labels = tokenizer(labels, truncation=True)
 
         tokens["labels"] = tok_labels["input_ids"]
 
