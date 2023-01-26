@@ -5,7 +5,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
 #SBATCH --mem=64GB
-#SBATCH --job-name=train_classifier_model
+#SBATCH --job-name=train_generator_model
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=l.m.sickert@student.rug.nl
 
@@ -21,4 +21,4 @@ module load PyTorch/1.10.0-fosscuda-2020b
 export HF_DATASETS_CACHE="/scratch/$USER/.cache/huggingface/datasets"
 
 # Change this to the correct file name
-python -u main.py --action train_classifier --lang en --qual gold,silver --name mlClassifier
+python -u main.py --action train_generator --lang en --qual gold,silver --name t5-base
