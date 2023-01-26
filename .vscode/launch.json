@@ -14,6 +14,14 @@
             "args": ["--action", "load_data"]
         },
         {
+            "name": "Load Data (isolated)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/data/loader.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
             "name": "Train Classifier",
             "type": "python",
             "request": "launch",

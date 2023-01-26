@@ -73,7 +73,7 @@ def create_dataset(langs: tuple, quality: tuple, force_regen: bool = False) -> D
 
         ds_features = Features({
             "tok": Sequence(feature=Value(dtype="string")),
-            "verbnet": Sequence(feature=Sequence(feature=ClassLabel(num_classes=len(verbnet_roles), names=verbnet_roles))),
+            "verbnet": Sequence(feature=Sequence(feature=Value(dtype="string"))),
             "sem": Sequence(feature=Value(dtype="string")),
             "cat": Sequence(feature=Value(dtype="string")),
             "lang": ClassLabel(num_classes=len(pmb_roles["language"]), names=pmb_roles["language"]),
@@ -83,6 +83,11 @@ def create_dataset(langs: tuple, quality: tuple, force_regen: bool = False) -> D
 
         dataset = Dataset.from_generator(_dataset_gen, features=ds_features, gen_kwargs={
                                          "languages": langs, "standards": quality}, config_name=ds_name)
+
+        roles = _get_non_empty_roles(dataset, verbnet_roles)
+
+        dataset = dataset.cast_column("verbnet", Sequence(feature=Sequence(
+            feature=ClassLabel(num_classes=len(roles), names=roles))))
 
         dataset = dataset.train_test_split(test_size=0.1, seed=42)
 
@@ -199,9 +204,33 @@ def _make_dir_if_not_exists(path):
         os.makedirs(path)
 
 
-if __name__ == "__main__":
-    ds = load_data(("en",), ("gold", "silver"))
+def _get_non_empty_roles(ds: Dataset, roles: list) -> list:
 
-    print(ds.shape)
-    print(ds.column_names)
-    print(ds["train"][0])
+    role_dict = {}
+
+    for role in roles:
+        role_dict[role] = 0
+
+    def count_label(example):
+
+        for token in example["verbnet"]:
+            for role in token:
+                role_dict[role] += 1
+
+    ds.map(count_label)
+
+    exist_roles = []
+
+    for k, v in role_dict.items():
+        if v > 0:
+            exist_roles.append(k)
+
+    return exist_roles
+
+
+if __name__ == "__main__":
+    data = create_dataset(("en",), ("gold", "silver"), True)
+
+    print(data.shape)
+    print(data.column_names)
+    print(data["train"][0])
