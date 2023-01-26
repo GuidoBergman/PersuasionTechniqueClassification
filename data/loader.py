@@ -92,8 +92,13 @@ def create_dataset(langs: tuple, quality: tuple, force_regen: bool = False) -> D
         dataset = dataset.train_test_split(test_size=0.1, seed=42)
 
         dataset.save_to_disk(ds_path)
+
     else:
         dataset = load_from_disk(ds_path)
+
+    old_cache = dataset.cleanup_cache_files()
+
+    print(f"#### removed {old_cache} old cache files ####")
 
     return dataset
 
@@ -229,7 +234,7 @@ def _get_non_empty_roles(ds: Dataset, roles: list) -> list:
 
 
 if __name__ == "__main__":
-    data = create_dataset(("en",), ("gold", "silver"), True)
+    data = create_dataset(("en",), ("gold", "silver"))
 
     print(data.shape)
     print(data.column_names)
