@@ -1,6 +1,9 @@
 import argparse
+import csv
 from data import loader
 from model_trainers.classifier import train_classifier, evaluate_classifier
+from model_trainers.baseline import run_baseline
+
 
 def tuple_arg(arg: str) -> tuple:
     arg_list = arg.split(",")
@@ -11,7 +14,7 @@ parser = argparse.ArgumentParser(prog="PMB Semantic Role Tagger",
                                  description="This program will classify VerbNet semantic roles for the PMB data")
 
 parser.add_argument("--action", type=str,
-                    choices=["load_data", "train_classifier", "eval_classifier"], help="The specific module to run", required=True)
+                    choices=["load_data", "run_baseline", "train_classifier", "eval_classifier"], help="The specific module to run", required=True)
 
 parser.add_argument("--force_new", type=bool, default=False,
                     help="Force a redownload and regeneration of the source data")
@@ -28,6 +31,12 @@ if __name__ == "__main__":
 
     if options.action == "load_data":
         loader.load_data(options.lang, options.qual, options.force_new)
+    elif options.action == "run_baseline":
+
+        ds = loader.load_data(options.lang, options.qual, options.force_new)
+        run_baseline(ds)
+
+
     elif options.action == "train_classifier":
         ds = loader.load_data(options.lang, options.qual, options.force_new)
         train_classifier(ds)
