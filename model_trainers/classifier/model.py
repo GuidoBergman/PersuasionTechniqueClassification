@@ -12,7 +12,7 @@ from torch.optim import AdamW
 from torch.nn import BCEWithLogitsLoss
 
 # pylint: disable-next=relative-beyond-top-level
-from ..utils import get_device, make_dir_if_not_exists, get_class_weights
+from ..utils import get_device, make_dir_if_not_exists, get_class_weights, evaluate_model, multi_hot_vector_to_class_vector
 
 from sklearn.metrics import classification_report
 
@@ -24,11 +24,6 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, wei
     # uncomment for local testing
     # dataset["train"] = dataset["train"].select(range(64))
     # dataset["test"] = dataset["test"].select(range(64))
-
-    # for checking if verbnet role correctly at index
-    test_roles_ordered = []
-    for i in dataset["test"]:
-        test_roles_ordered.append(i["verbnet"])
 
     label_list = dataset["train"].features["verbnet"].feature.feature.names
 
@@ -51,7 +46,7 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, wei
         tokenized_data["train"], shuffle=True, batch_size=1)
 
     eval_dataloader = DataLoader(
-        tokenized_data["test"], shuffle=False, batch_size=1)
+        tokenized_data["test"], shuffle=True, batch_size=1)
 
     optimizer = AdamW(model.parameters(), lr=2e-5)
 
@@ -76,6 +71,7 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, wei
         for batch in train_dataloader:
             running_loss = 0.0
             labels = batch.pop("labels")
+            batch.pop("input_text")
 
             batch = {k: v.to(device) for k, v in batch.items()}
 
@@ -106,13 +102,11 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, wei
 
         preds = []
         true_labels = []
-        curr_sentence = 0
-        pred_orders = []
-
 
         for batch in eval_dataloader:
 
             labels = batch.pop("labels")
+            batch.pop("input_text")
 
             batch = {k: v.to(device) for k, v in batch.items()}
 
@@ -128,30 +122,21 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, wei
                 [0.0], device=device)).int().tolist()
             true_label = flat_labels.int().tolist()
 
-            # check if predictions are correct at position
-            # does not pick from the top ones
-            pred_order = []
-            for i in range(len(dataset["test"][curr_sentence]["verbnet"])):
-                possible_roles = [j for j in range(len(pred[i])) if pred[i][j] == 1]
-                correct_pos = []
-                for role in test_roles_ordered[curr_sentence][i]:
-                    if role in possible_roles:
-                        correct_pos.append(True)
-                    else:
-                        correct_pos.append(False)
-                pred_order.append(correct_pos)
-
-            print(f'original sentence: {dataset["test"][curr_sentence]["tok"]}')
-            print(f'original labels: {dataset["test"][curr_sentence]["verbnet"]}')
-            print(f"Predicted labels correct?: {pred_order}")
-            curr_sentence += 1
-
             preds.extend(pred)
             true_labels.extend(true_label)
-            pred_orders.append(pred_order)
 
-        progress_bar.write(classification_report(
-            y_true=true_labels, y_pred=preds, target_names=label_list, zero_division=0))
+        # preds = multi_hot_vector_to_class_vector(preds)
+        # true_labels = multi_hot_vector_to_class_vector(true_labels)
+
+        metrics = classification_report(
+            y_true=true_labels, y_pred=preds, target_names=label_list, zero_division=0, output_dict=True)
+
+        progress_bar.write("micro average: " + str(metrics["micro avg"]))
+        progress_bar.write("macro average: " + str(metrics["macro avg"]))
+        progress_bar.write("weighted average: " + str(metrics["weighted avg"]))
+        progress_bar.write("samples average: " + str(metrics["samples avg"]))
+
+    progress_bar.close()
 
     make_dir_if_not_exists(MODEL_FOLDER)
 
@@ -160,11 +145,10 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, wei
 
 def evaluate_classifier(dataset: Dataset, model_name: str):
 
-    # for checking if role correct at index
-    test_roles_ordered = []
-    for i in dataset["test"]:
-        test_roles_ordered.append(i["verbnet"])
-        
+    # uncomment for local testing
+    dataset["train"] = dataset["train"].select(range(64))
+    dataset["test"] = dataset["test"].select(range(64))
+
     label_list = dataset["train"].features["verbnet"].feature.feature.names
 
     tokenizer = RobertaTokenizerFast.from_pretrained(
@@ -186,14 +170,14 @@ def evaluate_classifier(dataset: Dataset, model_name: str):
 
     preds = []
     true_labels = []
-    curr_sentence = 0
-    pred_orders = []
+    inputs = []
 
     progress_bar = tqdm(range(len(eval_dataloader)))
 
     for batch in eval_dataloader:
 
         labels = batch.pop("labels")
+        inputs.append(batch.pop("input_text"))
 
         batch = {k: v.to(device) for k, v in batch.items()}
 
@@ -209,32 +193,14 @@ def evaluate_classifier(dataset: Dataset, model_name: str):
             [0.0], device=device)).int().tolist()
         true_label = flat_labels.int().tolist()
 
-        # check if predictions are correct at position
-        # does not pick from the top ones
-        pred_order = []
-        for i in range(len(dataset["test"][curr_sentence]["verbnet"])):
-            possible_roles = [j for j in range(len(pred[i])) if pred[i][j] == 1]
-            correct_pos = []
-            for role in test_roles_ordered[curr_sentence][i]:
-                if role in possible_roles:
-                    correct_pos.append(True)
-                else:
-                    correct_pos.append(False)
-            pred_order.append(correct_pos)
-
-        print(f'original sentence: {dataset["test"][curr_sentence]["tok"]}')
-        print(f'original labels: {dataset["test"][curr_sentence]["verbnet"]}')
-        print(f"Predicted labels correct?: {pred_order}")
-        curr_sentence += 1
-
-        preds.extend(pred)
-        true_labels.extend(true_label)
-        pred_orders.append(pred_order)
+        preds.append(multi_hot_vector_to_class_vector(pred))
+        true_labels.append(multi_hot_vector_to_class_vector(true_label))
 
         progress_bar.update(1)
 
-    progress_bar.write(classification_report(
-        y_true=true_labels, y_pred=preds, target_names=label_list, zero_division=0))
+    progress_bar.close()
+
+    evaluate_model(dataset, inputs, true_labels, preds)
 
 
 def _tokenize_data(dataset: Dataset, tokenizer: RobertaTokenizerFast, label_list: list, label_all_tokens: bool = True) -> Dataset:
@@ -266,13 +232,14 @@ def _tokenize_data(dataset: Dataset, tokenizer: RobertaTokenizerFast, label_list
             labels.append(label_ids)
 
         tokens["labels"] = labels
+        tokens["input_text"] = examples["tok"]
 
         return tokens
 
     tokenized_dataset = dataset.map(tokenize_and_align, batched=True, num_proc=os.cpu_count(
-    ), remove_columns=dataset["train"].column_names)
+    ), remove_columns=dataset["test"].column_names)
 
     tokenized_dataset.set_format(
-        "torch", columns=["input_ids", "attention_mask", "labels"])
+        "torch", columns=["input_ids", "attention_mask", "labels"], output_all_columns=True)
 
     return tokenized_dataset

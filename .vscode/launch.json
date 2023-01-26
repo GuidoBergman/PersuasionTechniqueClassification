@@ -11,7 +11,10 @@
             "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["--action", "load_data"]
+            "args": [
+                "--action",
+                "load_data"
+            ]
         },
         {
             "name": "Load Data (isolated)",
@@ -28,7 +31,12 @@
             "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["--action", "train_classifier"]
+            "args": [
+                "--action",
+                "train_classifier",
+                "--name",
+                "model_test"
+            ]
         },
         {
             "name": "Train Classifier (Weighted)",
@@ -37,7 +45,13 @@
             "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["--action", "train_classifier","--weighted"]
+            "args": [
+                "--action",
+                "train_classifier",
+                "--weighted",
+                "--name",
+                "model_test"
+            ]
         },
         {
             "name": "Evaluate Classifier",
@@ -46,7 +60,10 @@
             "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["--action", "eval_classifier"]
+            "args": [
+                "--action",
+                "eval_classifier"
+            ]
         },
         {
             "name": "Train Generator",
@@ -55,7 +72,12 @@
             "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["--action", "train_generator"]
+            "args": [
+                "--action",
+                "train_generator",
+                "--name",
+                "model_test"
+            ]
         },
     ]
 }
