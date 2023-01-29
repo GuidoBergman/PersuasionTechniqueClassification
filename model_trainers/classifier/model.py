@@ -27,16 +27,16 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, wei
 
     label_list = dataset["train"].features["verbnet"].feature.feature.names
 
-    tokenizer = RobertaTokenizerFast.from_pretrained(
-        "roberta-base", add_prefix_space=True)
-
-    tokenized_data = _tokenize_data(dataset, tokenizer, label_list)
-
     model = RobertaForTokenClassification.from_pretrained(
         "roberta-base", num_labels=len(label_list),
         id2label={i: l for i, l in enumerate(label_list)},
         label2id={l: i for i, l in enumerate(label_list)}
     )
+
+    tokenizer = RobertaTokenizerFast.from_pretrained(
+        "roberta-base", add_prefix_space=True, model_max_length=model.config.n_positions)
+
+    tokenized_data = _tokenize_data(dataset, tokenizer, label_list)
 
     device = get_device()
     print(f"### training model on {device} ###")
@@ -208,7 +208,7 @@ def _tokenize_data(dataset: Dataset, tokenizer: RobertaTokenizerFast, label_list
     label_count = len(label_list)
 
     def tokenize_and_align(examples):
-        tokens = tokenizer(examples["tok"], is_split_into_words=True)
+        tokens = tokenizer(examples["tok"], is_split_into_words=True, truncation=True)
 
         labels = []
         for i, label in enumerate(examples["verbnet"]):
