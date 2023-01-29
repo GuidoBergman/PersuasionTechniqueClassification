@@ -13,7 +13,7 @@ import evaluate
 from tqdm.auto import tqdm
 
 # pylint: disable-next=relative-beyond-top-level
-from ..utils import evaluate_model
+from ..utils import evaluate_model, get_device
 
 MODEL_FOLDER = Path(__file__).parent.parent.parent.resolve() / "models"
 
@@ -137,6 +137,13 @@ def evaluate_generator(dataset: Dataset, model_name: str):
 
     data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=model)
 
+    device = get_device()
+    print(f"### evaluating model on {device} ###")
+    model.to(device)
+
+    model.eval()
+    model.zero_grad()
+
     input_texts = []
     labels = []
     preds = []
@@ -152,7 +159,9 @@ def evaluate_generator(dataset: Dataset, model_name: str):
         input_text = example.pop("input_text")
         input_texts.append(input_text)
 
-        inputs = data_collator([example], return_tensors="pt")
+        inputs = data_collator([example])
+
+        inputs = {k: v.to(device) for k, v in inputs.items()}
 
         # we want to generate at least one new token per input token
         min_length = len(input_text)
@@ -222,5 +231,9 @@ def _tokenize_data(ds: Dataset, tokenizer: T5Tokenizer, label_list: list) -> Dat
 
     tokenized_dataset = ds.map(
         tokenize, batched=True, remove_columns=ds["train"].column_names, num_proc=os.cpu_count())
+    
+    tokenized_dataset.set_format(
+        "torch", columns=["input_ids", "attention_mask"], output_all_columns=True)
+
 
     return tokenized_dataset
