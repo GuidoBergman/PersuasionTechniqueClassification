@@ -1,13 +1,14 @@
 import argparse
 from data import loader
 from model_trainers.classifier import train_classifier, evaluate_classifier
-from model_trainers.seq2seq import train_generator
+from model_trainers.seq2seq import train_generator, evaluate_generator
 
 ACTIONS = [
     "load_data",
     "train_classifier",
     "eval_classifier",
-    "train_generator"
+    "train_generator",
+    "eval_generator"
 ]
 
 
@@ -57,6 +58,9 @@ if __name__ == "__main__":
     elif options.action == "train_generator":
         ds = loader.load_data(options.lang, options.qual, options.force_new)
         train_generator(ds, options.name, options.epochs)
+    elif options.action == "eval_generator":
+        ds = loader.load_data(options.lang, options.qual, options.force_new)
+        evaluate_generator(ds, options.name)
 
     else:
         print("no valid action selected!")

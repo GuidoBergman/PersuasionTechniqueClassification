@@ -15,10 +15,10 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list) -
         test_roles_ordered.append(i["verbnet"])
 
     label_list = ds["train"].features["verbnet"].feature.feature.names
-    
+
     predicted_labels_role = []
     true_labels_role = []
-    
+
     # check if predictions are correct at position
     # does not pick from the top ones
     for idx, pred in enumerate(predictions):
@@ -57,21 +57,25 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list) -
 
     predicted_matrix = []
     true_matrix = []
-    matrix_labels = ["0", "Agent", "Asset", "Attribute", "Co-Theme", "Experiencer", "Location", "Theme", "PartOf", "Equal"]
+    matrix_labels = ["0", "Agent", "Asset", "Attribute", "Co-Theme",
+                     "Experiencer", "Location", "Theme", "PartOf", "Equal"]
 
     for idx, true in enumerate(true_labels_role):
         if true in matrix_labels:
             predicted_matrix.append(predicted_labels_role[idx])
             true_matrix.append(true_labels_role[idx])
 
-    # true-pred matrix for certain labels 
-    matrix = confusion_matrix(true_matrix, predicted_matrix, labels = matrix_labels, normalize='true')
-    cm_display = ConfusionMatrixDisplay(confusion_matrix = matrix, display_labels = matrix_labels)
+    # true-pred matrix for certain labels
+    matrix = confusion_matrix(
+        true_matrix, predicted_matrix, labels=matrix_labels, normalize='true')
+    cm_display = ConfusionMatrixDisplay(
+        confusion_matrix=matrix, display_labels=matrix_labels)
 
     # true-pred matrix for all labels
     # matrix = confusion_matrix(true_labels_role, predicted_labels_role, labels = label_list, normalize='true')
     # cm_display = ConfusionMatrixDisplay(confusion_matrix = matrix, display_labels = label_list)
 
-    cm_display.plot(cmap = plt.cm.YlGn)
-    plt.xticks(rotation = 90)
+    cm_display.plot(cmap=plt.cm.YlGn)
+    plt.xticks(rotation=90)
+    #plt.savefig()
     plt.show()

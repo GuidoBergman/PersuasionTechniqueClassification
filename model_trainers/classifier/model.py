@@ -146,8 +146,8 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, wei
 def evaluate_classifier(dataset: Dataset, model_name: str):
 
     # uncomment for local testing
-    dataset["train"] = dataset["train"].select(range(64))
-    dataset["test"] = dataset["test"].select(range(64))
+    # dataset["train"] = dataset["train"].select(range(64))
+    # dataset["test"] = dataset["test"].select(range(64))
 
     label_list = dataset["train"].features["verbnet"].feature.feature.names
 
