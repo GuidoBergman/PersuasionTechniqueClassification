@@ -34,7 +34,7 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, wei
     )
 
     tokenizer = RobertaTokenizerFast.from_pretrained(
-        "roberta-base", add_prefix_space=True, model_max_length=model.config.n_positions)
+        "roberta-base", add_prefix_space=True)
 
     tokenized_data = _tokenize_data(dataset, tokenizer, label_list)
 
