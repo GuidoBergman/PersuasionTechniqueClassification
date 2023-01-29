@@ -78,4 +78,4 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list) -
     cm_display.plot(cmap=plt.cm.YlGn)
     plt.xticks(rotation=90)
     #plt.savefig()
-    plt.show()
+    #plt.show()
