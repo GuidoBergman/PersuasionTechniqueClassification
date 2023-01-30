@@ -1,5 +1,3 @@
-import os
-
 import numpy as np
 
 from pathlib import Path
@@ -11,6 +9,7 @@ from datasets import Dataset, ClassLabel
 import evaluate
 
 from tqdm.auto import tqdm
+from typing import Tuple
 
 # pylint: disable-next=relative-beyond-top-level
 from ..utils import evaluate_model, get_device
@@ -41,7 +40,7 @@ def train_generator(dataset: Dataset, model_name: str, num_epochs: int = 3):
 
     model.resize_token_embeddings(len(tokenizer))
 
-    tokenized_data = _tokenize_data(dataset, tokenizer, label_list)
+    tokenized_data, dataset = _tokenize_data(dataset, tokenizer, label_list)
 
     data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=model)
 
@@ -127,13 +126,13 @@ def evaluate_generator(dataset: Dataset, model_name: str):
 
     # add tokens for role combinations
     # num_added_tokens += tokenizer.add_tokens(
-    #     [f"{l}," for l in label_feat.names if l != "0"])
+    #    [f"{l}," for l in label_feat.names if l != "0"])
 
     print(f"### {num_added_tokens} tokens have been added to the tokenizer")
 
     model.resize_token_embeddings(len(tokenizer))
 
-    tokenized_data = _tokenize_data(dataset, tokenizer, label_feat.names)
+    tokenized_data, dataset = _tokenize_data(dataset, tokenizer, label_feat.names)
 
     data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=model)
 
@@ -205,8 +204,9 @@ def post_process_gen_outputs(out: list, tokenizer: T5Tokenizer, class_label: Cla
     return decoded_class
 
 
-def _tokenize_data(ds: Dataset, tokenizer: T5Tokenizer, label_list: list) -> Dataset:
+def _tokenize_data(ds: Dataset, tokenizer: T5Tokenizer, label_list: list) -> Tuple[Dataset, Dataset]:
 
+    remove_examples = set()
     def tokenize(examples):
 
         inputs = [" ".join(example) for example in examples["tok"]]
@@ -239,6 +239,7 @@ def _tokenize_data(ds: Dataset, tokenizer: T5Tokenizer, label_list: list) -> Dat
         tokens["input_text"] = examples["tok"]
 
         for idx in rm_ids:
+            remove_examples.add(examples["id"][idx])
             for k, v in tokens.items():
                 v.pop(idx)
 
@@ -253,4 +254,6 @@ def _tokenize_data(ds: Dataset, tokenizer: T5Tokenizer, label_list: list) -> Dat
     tokenized_dataset.set_format(
         "torch", columns=["input_ids", "attention_mask"], output_all_columns=True)
 
-    return tokenized_dataset
+    ds = ds.filter(lambda e: e["id"] not in remove_examples)
+
+    return tokenized_dataset, ds
