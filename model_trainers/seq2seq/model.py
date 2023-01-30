@@ -176,11 +176,16 @@ def evaluate_generator(dataset: Dataset, model_name: str):
         # special handling to avoid length mismatches between input and predictions
         if len(decoded_pred) > len(input_text):
             decoded_pred = decoded_pred[:len(input_text)]
+            print(
+                f"pred > text: new pred len {len(decoded_pred)}, label {len(decoded_labels)}, input_text {len(input_text)}")
         elif len(decoded_pred) < len(input_text):
             missing = len(input_text) - len(decoded_pred)
 
             for i in range(missing):
                 decoded_pred.append([0])
+
+            print(
+                f"pred < text: new pred len {len(decoded_pred)}, label {len(decoded_labels)}, input_text {len(input_text)}")
 
         preds.append(decoded_pred)
 
@@ -231,9 +236,8 @@ def _tokenize_data(ds: Dataset, tokenizer: T5Tokenizer, label_list: list) -> Dat
 
     tokenized_dataset = ds.map(
         tokenize, batched=True, remove_columns=ds["train"].column_names, num_proc=os.cpu_count())
-    
+
     tokenized_dataset.set_format(
         "torch", columns=["input_ids", "attention_mask"], output_all_columns=True)
-
 
     return tokenized_dataset
