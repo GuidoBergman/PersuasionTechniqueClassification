@@ -125,8 +125,8 @@ def evaluate_generator(dataset: Dataset, model_name: str):
     num_added_tokens = tokenizer.add_tokens(label_feat.names)
 
     # add tokens for role combinations
-    # num_added_tokens += tokenizer.add_tokens(
-    #    [f"{l}," for l in label_feat.names if l != "0"])
+    num_added_tokens += tokenizer.add_tokens(
+       [f"{l}," for l in label_feat.names if l != "0"])
 
     print(f"### {num_added_tokens} tokens have been added to the tokenizer")
 
