@@ -37,7 +37,7 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list) -
                 if j >= len(possible_roles):
                     predicted_labels_role.append(0)
                     correct_pos.append(False)
-                # check if true role at current position matches 
+                # check if true role at current position matches
                 # predicted role at curr position
                 elif role == possible_roles[j]:
                     correct_pos.append(True)
@@ -45,7 +45,8 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list) -
                 else:
                     predicted_labels_role.append(possible_roles[j])
                     correct_pos.append(False)
-            role_lengths.append(len(possible_roles) - len(test_roles_ordered[idx][i]))
+            role_lengths.append(len(possible_roles) -
+                                len(test_roles_ordered[idx][i]))
             pred_order.append(correct_pos)
 
         # print(f"original sentence: {inputs[idx]}")
@@ -68,12 +69,14 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list) -
     predicted_labels_role = [label_list[j] for j in predicted_labels_role]
     true_labels_role = [label_list[j] for j in true_labels_role]
 
-    predicted_matrix1, predicted_matrix2= [], []
+    predicted_matrix1, predicted_matrix2 = [], []
     true_matrix1, true_matrix2 = [], []
-    # matrix_labels = ["0", "Agent", "Attribute", "Co-Theme", "Destination", 
+    # matrix_labels = ["0", "Agent", "Attribute", "Co-Theme", "Destination",
     #                  "Experiencer", "Location", "Patient", "Theme", "PartOf", "Equal"]
-    matrix_labels_1 = ["0", "Agent", "Attribute", "Experiencer", "Location", "Theme"]
-    matrix_labels_2 = ["0", "InstanceOf", "Sub", "Material", "Extent", "Co-Patient"]
+    matrix_labels_1 = ["0", "Agent", "Attribute",
+                       "Experiencer", "Location", "Theme"]
+    matrix_labels_2 = ["0", "InstanceOf", "Sub",
+                       "Material", "Extent", "Co-Patient"]
     for idx, true in enumerate(true_labels_role):
         if true in matrix_labels_1:
             predicted_matrix1.append(predicted_labels_role[idx])
@@ -83,37 +86,50 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list) -
             true_matrix2.append(true_labels_role[idx])
 
     # true-pred confusion matrix for high freq
-    matrix_1 = confusion_matrix(true_matrix1, predicted_matrix1, labels=matrix_labels_1, normalize='true')
-    cm_display = ConfusionMatrixDisplay(confusion_matrix=matrix_1, display_labels=matrix_labels_1)
+    matrix_1 = confusion_matrix(
+        true_matrix1, predicted_matrix1, labels=matrix_labels_1, normalize='true')
+    cm_display = ConfusionMatrixDisplay(
+        confusion_matrix=matrix_1, display_labels=matrix_labels_1)
 
-    plt.rcParams.update({'axes.labelsize': 20, 'xtick.labelsize': 12, 'ytick.labelsize': 12})
+    plt.rcParams.update(
+        {'axes.labelsize': 20, 'xtick.labelsize': 12, 'ytick.labelsize': 12})
     cm_display.plot(cmap=plt.cm.YlGn)
     plt.xticks(rotation=90)
-    plt.show()
+    plt.savefig("confusion_matrix_high_freq.png",format="png")
 
     # true-pred confusion matrix for low freq
-    matrix_2 = confusion_matrix(true_matrix2, predicted_matrix2, labels=matrix_labels_2, normalize='true')
-    cm_display = ConfusionMatrixDisplay(confusion_matrix=matrix_2, display_labels=matrix_labels_2)
+    matrix_2 = confusion_matrix(
+        true_matrix2, predicted_matrix2, labels=matrix_labels_2, normalize='true')
+    cm_display = ConfusionMatrixDisplay(
+        confusion_matrix=matrix_2, display_labels=matrix_labels_2)
     cm_display.plot(cmap=plt.cm.YlGn)
     plt.xticks(rotation=90)
-    plt.show()
+    plt.savefig("confusion_matrix_low_freq.png",format="png")
 
     # true-pred confusion matrix for all labels
-    matrix_3 = confusion_matrix(true_labels_role, predicted_labels_role, labels=label_list, normalize='true')
-    cm_display = ConfusionMatrixDisplay(confusion_matrix=matrix_3, display_labels=label_list)
+    matrix_3 = confusion_matrix(
+        true_labels_role, predicted_labels_role, labels=label_list, normalize='true')
+    cm_display = ConfusionMatrixDisplay(
+        confusion_matrix=matrix_3, display_labels=label_list)
     cm_display.plot(cmap=plt.cm.YlGn)
     plt.xticks(rotation=90)
-    plt.show()
+    plt.savefig("confusion_matrix_all.png",format="png")
 
     # bar chart of percentage of missed/excess args
     labels = ['1', '2', '3+']
     print(f"role lengths: {role_lengths}")
-    perc_excess_1 = (len([y for y in role_lengths if y == 1])/len(role_lengths)) * 100
-    perc_excess_2 = (len([y for y in role_lengths if y == 2])/len(role_lengths)) * 100
-    perc_excess_3ab = (len([y for y in role_lengths if y >= 3])/len(role_lengths)) * 100
-    perc_missing_1 = (len([y for y in role_lengths if y == -1])/len(role_lengths)) * 100
-    perc_missing_2 = (len([y for y in role_lengths if y == -2])/len(role_lengths)) * 100
-    perc_missing_3ab = (len([y for y in role_lengths if y <= -3])/len(role_lengths)) * 100
+    perc_excess_1 = (
+        len([y for y in role_lengths if y == 1])/len(role_lengths)) * 100
+    perc_excess_2 = (
+        len([y for y in role_lengths if y == 2])/len(role_lengths)) * 100
+    perc_excess_3ab = (
+        len([y for y in role_lengths if y >= 3])/len(role_lengths)) * 100
+    perc_missing_1 = (
+        len([y for y in role_lengths if y == -1])/len(role_lengths)) * 100
+    perc_missing_2 = (
+        len([y for y in role_lengths if y == -2])/len(role_lengths)) * 100
+    perc_missing_3ab = (
+        len([y for y in role_lengths if y <= -3])/len(role_lengths)) * 100
 
     excess = [perc_excess_1, perc_excess_2, perc_excess_3ab]
     missing = [perc_missing_1, perc_missing_2, perc_missing_3ab]
@@ -130,5 +146,4 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list) -
     ax.bar_label(rects1, padding=3)
     ax.bar_label(rects2, padding=3)
     fig.tight_layout()
-    plt.show()
-    
+    plt.savefig("excess_args_bar.png",format="png")
