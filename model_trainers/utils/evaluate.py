@@ -68,36 +68,46 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list) -
     predicted_labels_role = [label_list[j] for j in predicted_labels_role]
     true_labels_role = [label_list[j] for j in true_labels_role]
 
-    predicted_matrix = []
-    true_matrix = []
-    matrix_labels = ["0", "Agent", "Attribute", "Co-Theme", "Destination", 
-                     "Experiencer", "Location", "Patient", "Theme", "PartOf", "Equal"]
-
+    predicted_matrix1, predicted_matrix2= [], []
+    true_matrix1, true_matrix2 = [], []
+    # matrix_labels = ["0", "Agent", "Attribute", "Co-Theme", "Destination", 
+    #                  "Experiencer", "Location", "Patient", "Theme", "PartOf", "Equal"]
+    matrix_labels_1 = ["0", "Agent", "Attribute", "Experiencer", "Location", "Theme"]
+    matrix_labels_2 = ["0", "InstanceOf", "Sub", "Material", "Extent", "Co-Patient"]
     for idx, true in enumerate(true_labels_role):
-        if true in matrix_labels:
-            predicted_matrix.append(predicted_labels_role[idx])
-            true_matrix.append(true_labels_role[idx])
+        if true in matrix_labels_1:
+            predicted_matrix1.append(predicted_labels_role[idx])
+            true_matrix1.append(true_labels_role[idx])
+        if true in matrix_labels_2:
+            predicted_matrix2.append(predicted_labels_role[idx])
+            true_matrix2.append(true_labels_role[idx])
 
-
-    # true-pred confusion matrix for certain labels 
-    matrix_1 = confusion_matrix(true_matrix, predicted_matrix, labels=matrix_labels, normalize='true')
-    cm_display = ConfusionMatrixDisplay(confusion_matrix=matrix_1, display_labels=matrix_labels)
+    # true-pred confusion matrix for high freq
+    matrix_1 = confusion_matrix(true_matrix1, predicted_matrix1, labels=matrix_labels_1, normalize='true')
+    cm_display = ConfusionMatrixDisplay(confusion_matrix=matrix_1, display_labels=matrix_labels_1)
 
     plt.rcParams.update({'axes.labelsize': 20, 'xtick.labelsize': 12, 'ytick.labelsize': 12})
     cm_display.plot(cmap=plt.cm.YlGn)
     plt.xticks(rotation=90)
     plt.show()
 
+    # true-pred confusion matrix for low freq
+    matrix_2 = confusion_matrix(true_matrix2, predicted_matrix2, labels=matrix_labels_2, normalize='true')
+    cm_display = ConfusionMatrixDisplay(confusion_matrix=matrix_2, display_labels=matrix_labels_2)
+    cm_display.plot(cmap=plt.cm.YlGn)
+    plt.xticks(rotation=90)
+    plt.show()
+
     # true-pred confusion matrix for all labels
-    matrix_2 = confusion_matrix(true_labels_role, predicted_labels_role, labels=label_list, normalize='true')
-    cm_display = ConfusionMatrixDisplay(confusion_matrix=matrix_2, display_labels=label_list)
+    matrix_3 = confusion_matrix(true_labels_role, predicted_labels_role, labels=label_list, normalize='true')
+    cm_display = ConfusionMatrixDisplay(confusion_matrix=matrix_3, display_labels=label_list)
     cm_display.plot(cmap=plt.cm.YlGn)
     plt.xticks(rotation=90)
     plt.show()
 
     # bar chart of percentage of missed/excess args
     labels = ['1', '2', '3+']
-
+    print(f"role lengths: {role_lengths}")
     perc_excess_1 = (len([y for y in role_lengths if y == 1])/len(role_lengths)) * 100
     perc_excess_2 = (len([y for y in role_lengths if y == 2])/len(role_lengths)) * 100
     perc_excess_3ab = (len([y for y in role_lengths if y >= 3])/len(role_lengths)) * 100
@@ -114,6 +124,7 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list) -
     rects1 = ax.bar(x - width/2, missing, width, label='Missed')
     rects2 = ax.bar(x + width/2, excess, width, label='Excess')
     ax.set_ylabel("% of tokens")
+    ax.set_ylabel("Number of tokens")
     ax.set_xticks(x, labels)
     ax.legend()
     ax.bar_label(rects1, padding=3)
