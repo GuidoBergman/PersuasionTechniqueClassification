@@ -58,6 +58,7 @@ if __name__ == "__main__":
     elif options.action == "train_generator":
         ds = loader.load_data(options.lang, options.qual, options.force_new)
         train_generator(ds, options.name, options.epochs)
+        evaluate_generator(ds, options.name)
     elif options.action == "eval_generator":
         ds = loader.load_data(options.lang, options.qual, options.force_new)
         evaluate_generator(ds, options.name)

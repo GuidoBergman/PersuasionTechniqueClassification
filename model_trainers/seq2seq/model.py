@@ -3,6 +3,7 @@ import numpy as np
 from pathlib import Path
 
 from transformers import T5Tokenizer, T5ForConditionalGeneration, DataCollatorForSeq2Seq, Seq2SeqTrainer, Seq2SeqTrainingArguments
+from transformers.optimization import Adafactor, AdafactorSchedule
 
 from datasets import Dataset, ClassLabel
 
@@ -44,12 +45,15 @@ def train_generator(dataset: Dataset, model_name: str, num_epochs: int = 3):
 
     data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=model)
 
+    optimizer = Adafactor(model.parameters(), scale_parameter=False, relative_step=False, lr=0.001)
+
+    lr_scheduler = AdafactorSchedule(optimizer)
+
     training_args = Seq2SeqTrainingArguments(
         output_dir=MODEL_FOLDER / "srl-generator" / "checkpoints",
         overwrite_output_dir=True,
         evaluation_strategy="epoch",
         save_strategy="no",
-        learning_rate=1e-4,
         per_device_train_batch_size=8,
         per_device_eval_batch_size=8,
         num_train_epochs=num_epochs,
@@ -100,6 +104,7 @@ def train_generator(dataset: Dataset, model_name: str, num_epochs: int = 3):
         eval_dataset=tokenized_data["test"],
         data_collator=data_collator,
         tokenizer=tokenizer,
+        optimizers=(optimizer,lr_scheduler),
         compute_metrics=compute_metrics
     )
 
