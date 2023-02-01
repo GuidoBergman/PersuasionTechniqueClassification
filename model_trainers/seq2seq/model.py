@@ -175,7 +175,7 @@ def evaluate_generator(dataset: Dataset, model_name: str):
         # special handling to avoid length mismatches between input and predictions
         if len(decoded_pred) > len(input_text):
             decoded_pred = decoded_pred[:len(input_text)]
-            gen_length.appen("long")
+            gen_length.append("long")
         elif len(decoded_pred) < len(input_text):
             missing = len(input_text) - len(decoded_pred)
 
