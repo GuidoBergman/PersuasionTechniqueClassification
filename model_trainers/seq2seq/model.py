@@ -32,8 +32,8 @@ def train_generator(dataset: Dataset, model_name: str, num_epochs: int = 3):
     num_added_tokens = tokenizer.add_tokens(label_list)
 
     # add tokens for role combinations
-    num_added_tokens += tokenizer.add_tokens(
-        [f"{l}," for l in label_list if l != "0"])
+    # num_added_tokens += tokenizer.add_tokens(
+    #     [f"{l}," for l in label_list if l != "0"])
 
     print(f"### {num_added_tokens} tokens have been added to the tokenizer")
 
