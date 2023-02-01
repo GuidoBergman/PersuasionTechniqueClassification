@@ -5,9 +5,9 @@ from sklearn.metrics import classification_report, ConfusionMatrixDisplay, confu
 import matplotlib.pyplot as plt
 import numpy as np
 from .torch_utils import class_vector_to_multi_hot_vector
+from typing import Optional
 
-
-def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list) -> None:
+def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list, output_length: Optional[list] = None) -> None:
 
     # for checking if role correct at index
     test_roles_ordered = []
@@ -23,13 +23,26 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list) -
     # for bar chart of percentage of missed/excess args
     role_lengths = []
 
+    if output_length is not None:
+        short_sent = filter(lambda e: e == "short", output_length)
+        long_sent = filter(lambda e: e == "long", output_length)
+
+        print(f"too long sequences: {round(len(long_sent)/len(output_length))}")
+        print(f"too short sequences: {round(len(short_sent)/len(output_length))}")
+
     # check if predictions are correct at position
     # does not pick from the top ones
     for idx, pred in enumerate(predictions):
         pred_order = []
         for i in range(len(ds["test"][idx]["verbnet"])):
             true_labels_role.extend(ds["test"][idx]["verbnet"][i])
-            possible_roles = pred[i]
+            try:
+                possible_roles = pred[i]
+            except IndexError:
+                print("'### Alignment Error ###")
+                print(pred)
+                print(ds["test"][idx]["verbnet"])
+                continue
             correct_pos = []
             # print(f"possible roles for {test_roles_ordered[idx][i]}: {possible_roles}")
             for j, role in enumerate(test_roles_ordered[idx][i]):

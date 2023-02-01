@@ -48,7 +48,7 @@ def train_generator(dataset: Dataset, model_name: str, num_epochs: int = 3):
         overwrite_output_dir=True,
         evaluation_strategy="epoch",
         save_strategy="no",
-        learning_rate=0.001,
+        learning_rate=1e-4,
         per_device_train_batch_size=8,
         per_device_eval_batch_size=8,
         num_train_epochs=num_epochs,
@@ -145,6 +145,7 @@ def evaluate_generator(dataset: Dataset, model_name: str):
     input_texts = []
     labels = []
     preds = []
+    gen_length = []
 
     progress_bar = tqdm(range(len(tokenized_data["test"])))
 
@@ -174,19 +175,22 @@ def evaluate_generator(dataset: Dataset, model_name: str):
         # special handling to avoid length mismatches between input and predictions
         if len(decoded_pred) > len(input_text):
             decoded_pred = decoded_pred[:len(input_text)]
+            gen_length.appen("long")
         elif len(decoded_pred) < len(input_text):
             missing = len(input_text) - len(decoded_pred)
 
             for i in range(missing):
                 decoded_pred.append([0])
-
+            gen_length.append("short")
+        else:
+            gen_length.append("equal")
         preds.append(decoded_pred)
 
         progress_bar.update(1)
 
     progress_bar.close()
 
-    evaluate_model(dataset, input_texts, labels, preds)
+    evaluate_model(dataset, input_texts, labels, preds, gen_length)
 
 
 def post_process_gen_outputs(out: list, tokenizer: T5Tokenizer, class_label: ClassLabel) -> list:
