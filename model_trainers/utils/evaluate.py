@@ -7,6 +7,7 @@ import numpy as np
 from .torch_utils import class_vector_to_multi_hot_vector
 from typing import Optional
 
+
 def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list, output_length: Optional[list] = None) -> None:
 
     # for checking if role correct at index
@@ -27,8 +28,11 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list, o
         short_sent = list(filter(lambda e: e == "short", output_length))
         long_sent = list(filter(lambda e: e == "long", output_length))
 
-        print(f"too long sequences: {round(len(long_sent)/len(output_length))}")
-        print(f"too short sequences: {round(len(short_sent)/len(output_length))}")
+        long_sent_freq = len(long_sent)/len(output_length)
+        short_sent_freq = len(short_sent)/len(output_length)
+
+        print(f"too long sequences: {round(long_sent_freq, 4)}")
+        print(f"too short sequences: {round(short_sent_freq, 4)}")
 
     # check if predictions are correct at position
     # does not pick from the top ones
@@ -108,7 +112,7 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list, o
         {'axes.labelsize': 20, 'xtick.labelsize': 12, 'ytick.labelsize': 12})
     cm_display.plot(cmap=plt.cm.YlGn)
     plt.xticks(rotation=90)
-    plt.savefig("confusion_matrix_high_freq.png",format="png")
+    plt.savefig("confusion_matrix_high_freq.png", format="png")
 
     # true-pred confusion matrix for low freq
     matrix_2 = confusion_matrix(
@@ -117,7 +121,7 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list, o
         confusion_matrix=matrix_2, display_labels=matrix_labels_2)
     cm_display.plot(cmap=plt.cm.YlGn)
     plt.xticks(rotation=90)
-    plt.savefig("confusion_matrix_low_freq.png",format="png")
+    plt.savefig("confusion_matrix_low_freq.png", format="png")
 
     # true-pred confusion matrix for all labels
     matrix_3 = confusion_matrix(
@@ -126,11 +130,11 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list, o
         confusion_matrix=matrix_3, display_labels=label_list)
     cm_display.plot(cmap=plt.cm.YlGn)
     plt.xticks(rotation=90)
-    plt.savefig("confusion_matrix_all.png",format="png")
+    plt.savefig("confusion_matrix_all.png", format="png")
 
     # bar chart of percentage of missed/excess args
     labels = ['1', '2', '3+']
-    print(f"role lengths: {role_lengths}")
+    # print(f"role lengths: {role_lengths}")
     perc_excess_1 = (
         len([y for y in role_lengths if y == 1])/len(role_lengths)) * 100
     perc_excess_2 = (
@@ -153,10 +157,10 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list, o
     rects1 = ax.bar(x - width/2, missing, width, label='Missed')
     rects2 = ax.bar(x + width/2, excess, width, label='Excess')
     ax.set_ylabel("% of tokens")
-    ax.set_ylabel("Number of tokens")
+    ax.set_xlabel("Number of tokens")
     ax.set_xticks(x, labels)
     ax.legend()
     ax.bar_label(rects1, padding=3)
     ax.bar_label(rects2, padding=3)
     fig.tight_layout()
-    plt.savefig("excess_args_bar.png",format="png")
+    plt.savefig("excess_args_bar.png", format="png")

@@ -112,8 +112,8 @@ def evaluate_generator(dataset: Dataset, model_name: str):
     label_feat = dataset["train"].features["verbnet"].feature.feature
 
     # uncomment for local testing
-    dataset["train"] = dataset["train"].select(range(64))
-    dataset["test"] = dataset["test"].select(range(64))
+    # dataset["train"] = dataset["train"].select(range(64))
+    # dataset["test"] = dataset["test"].select(range(64))
 
     model = T5ForConditionalGeneration.from_pretrained(
         MODEL_FOLDER / "srl-generator" / model_name)
