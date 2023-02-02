@@ -44,23 +44,23 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list, o
                 print(ds["test"][idx]["verbnet"])
                 continue
             correct_pos = []
-            # print(f"possible roles for {test_roles_ordered[idx][i]}: {possible_roles}")
-            for j, role in enumerate(test_roles_ordered[idx][i]):
-                # if theres missing roles in predictions add 0
-                if j >= len(possible_roles):
-                    predicted_labels_role.append(0)
-                    correct_pos.append(False)
-                # check if true role at current position matches
-                # predicted role at curr position
-                elif role == possible_roles[j]:
-                    correct_pos.append(True)
-                    predicted_labels_role.append(role)
-                else:
-                    predicted_labels_role.append(possible_roles[j])
-                    correct_pos.append(False)
-            role_lengths.append(len(possible_roles) -
-                                len(test_roles_ordered[idx][i]))
-            pred_order.append(correct_pos)
+    #         # print(f"possible roles for {test_roles_ordered[idx][i]}: {possible_roles}")
+    #         for j, role in enumerate(test_roles_ordered[idx][i]):
+    #             # if theres missing roles in predictions add 0
+    #             if j >= len(possible_roles):
+    #                 predicted_labels_role.append(0)
+    #                 correct_pos.append(False)
+    #             # check if true role at current position matches
+    #             # predicted role at curr position
+    #             elif role == possible_roles[j]:
+    #                 correct_pos.append(True)
+    #                 predicted_labels_role.append(role)
+    #             else:
+    #                 predicted_labels_role.append(possible_roles[j])
+    #                 correct_pos.append(False)
+    #         role_lengths.append(len(possible_roles) -
+    #                             len(test_roles_ordered[idx][i]))
+    #         pred_order.append(correct_pos)
 
         # print(f"original sentence: {inputs[idx]}")
         # print(f"original labels: {ds['test'][idx]['verbnet']}")
