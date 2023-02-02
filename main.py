@@ -1,10 +1,12 @@
 import argparse
 from data import loader
 from model_trainers.classifier import train_classifier, evaluate_classifier
+from model_trainers.baseline import run_baseline, evaluate_baseline
 from model_trainers.seq2seq import train_generator, evaluate_generator
 
 ACTIONS = [
     "load_data",
+    "run_baseline",
     "train_classifier",
     "eval_classifier",
     "train_generator",
@@ -48,6 +50,10 @@ if __name__ == "__main__":
 
     if options.action == "load_data":
         loader.load_data(options.lang, options.qual, options.force_new)
+    elif options.action == "run_baseline":
+        ds = loader.load_data(options.lang, options.qual, options.force_new)
+        run_baseline(ds)
+        evaluate_baseline(ds)
     elif options.action == "train_classifier":
         ds = loader.load_data(options.lang, options.qual, options.force_new)
         train_classifier(ds, options.name, options.epochs, options.weighted)
