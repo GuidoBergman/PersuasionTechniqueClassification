@@ -103,37 +103,45 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list, o
             true_matrix2.append(true_labels_role[idx])
 
     # true-pred confusion matrix for high freq
-    matrix_1 = confusion_matrix(
-        true_matrix1, predicted_matrix1, labels=matrix_labels_1, normalize='true')
-    cm_display = ConfusionMatrixDisplay(
-        confusion_matrix=matrix_1, display_labels=matrix_labels_1)
+    # matrix_1 = confusion_matrix(
+    #    true_matrix1, predicted_matrix1, labels=matrix_labels_1, normalize='true')
+    cm_display = ConfusionMatrixDisplay.from_predictions(
+        y_true=true_matrix1, y_pred=predicted_matrix1, labels=matrix_labels_1, normalize='true', xticks_rotation="vertical", cmap=plt.cm.YlGn)
 
     plt.rcParams.update(
         {'axes.labelsize': 20, 'xtick.labelsize': 12, 'ytick.labelsize': 12})
-    cm_display.plot(cmap=plt.cm.YlGn)
-    plt.xticks(rotation=90)
-    plt.savefig("confusion_matrix_high_freq.png", format="png")
+    # cm_display.plot(cmap=plt.cm.YlGn)
+    # plt.xticks(rotation=90)
+    # fig = cm_display.figure_
+    plt.savefig("confusion_matrix_high_freq.png",
+                format="png", dpi=300, bbox_inches="tight")
 
     # true-pred confusion matrix for low freq
-    matrix_2 = confusion_matrix(
-        true_matrix2, predicted_matrix2, labels=matrix_labels_2, normalize='true')
-    cm_display = ConfusionMatrixDisplay(
-        confusion_matrix=matrix_2, display_labels=matrix_labels_2)
-    cm_display.plot(cmap=plt.cm.YlGn)
-    plt.xticks(rotation=90)
-    plt.savefig("confusion_matrix_low_freq.png", format="png")
+    # matrix_2 = confusion_matrix(
+    #    true_matrix2, predicted_matrix2, labels=matrix_labels_2, normalize='true')
+    cm_display = ConfusionMatrixDisplay.from_predictions(
+        y_true=true_matrix2, y_pred=predicted_matrix2, labels=matrix_labels_2, normalize='true', xticks_rotation="vertical", cmap=plt.cm.YlGn)
+    # cm_display.plot(cmap=plt.cm.YlGn)
+    # plt.xticks(rotation=90)
+    # fig = cm_display.figure_
+    plt.savefig("confusion_matrix_low_freq.png",
+                format="png", dpi=300, bbox_inches="tight")
 
     # true-pred confusion matrix for all labels
-    matrix_3 = confusion_matrix(
-        true_labels_role, predicted_labels_role, labels=label_list, normalize='true')
-    cm_display = ConfusionMatrixDisplay(
-        confusion_matrix=matrix_3, display_labels=label_list)
-    cm_display.plot(cmap=plt.cm.YlGn)
-    plt.xticks(rotation=90)
-    plt.savefig("confusion_matrix_all.png", format="png")
+    # matrix_3 = confusion_matrix(
+    #    true_labels_role, predicted_labels_role, labels=label_list, normalize='true')
+    cm_display = ConfusionMatrixDisplay.from_predictions(
+        y_true=true_labels_role, y_pred=predicted_labels_role, labels=label_list, normalize='true', xticks_rotation="vertical", cmap=plt.cm.YlGn)
+    # cm_display.plot(cmap=plt.cm.YlGn)
+    # plt.xticks(rotation=90)
+    fig = cm_display.figure_
+    fig.set_figwidth(25)
+    fig.set_figheight(25)
+    plt.savefig("confusion_matrix_all.png", format="png",
+                dpi=300, bbox_inches="tight")
 
     # bar chart of percentage of missed/excess args
-    labels = ['1', '2', '3+']
+    labels = ["1", "2", "3+"]
     # print(f"role lengths: {role_lengths}")
     perc_excess_1 = (
         len([y for y in role_lengths if y == 1])/len(role_lengths)) * 100
@@ -148,19 +156,22 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list, o
     perc_missing_3ab = (
         len([y for y in role_lengths if y <= -3])/len(role_lengths)) * 100
 
-    excess = [perc_excess_1, perc_excess_2, perc_excess_3ab]
-    missing = [perc_missing_1, perc_missing_2, perc_missing_3ab]
+    excess = [round(perc_excess_1, 2), round(
+        perc_excess_2, 2), round(perc_excess_3ab, 2)]
+    missing = [round(perc_missing_1, 2), round(
+        perc_missing_2, 2), round(perc_missing_3ab, 2)]
 
     x = np.arange(len(labels))
     width = 0.35
     fig, ax = plt.subplots()
-    rects1 = ax.bar(x - width/2, missing, width, label='Missed')
-    rects2 = ax.bar(x + width/2, excess, width, label='Excess')
+    rects1 = ax.bar(x - width/2, missing, width, label="Missed")
+    rects2 = ax.bar(x + width/2, excess, width, label="Excess")
     ax.set_ylabel("% of tokens")
     ax.set_xlabel("Number of tokens")
+    ax.set_ylim(ymin=0, ymax=100)
     ax.set_xticks(x, labels)
     ax.legend()
     ax.bar_label(rects1, padding=3)
     ax.bar_label(rects2, padding=3)
-    fig.tight_layout()
-    plt.savefig("excess_args_bar.png", format="png")
+    fig.savefig("excess_args_bar.png", format="png",
+                dpi=300, bbox_inches="tight")
