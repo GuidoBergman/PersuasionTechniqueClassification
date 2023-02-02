@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=24:00:00
+#SBATCH --time=12:00:00
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:v100:1
 #SBATCH --ntasks=1
@@ -21,4 +21,4 @@ module load PyTorch/1.10.0-fosscuda-2020b
 export HF_DATASETS_CACHE="/scratch/$USER/.cache/huggingface/datasets"
 
 # Change this to the correct file name
-python -u main.py --action train_classifier --lang en --qual gold,silver --name mlClassifier
+python -u main.py --action train_classifier --lang en --qual gold,silver --name mlClassifier --epochs 5
