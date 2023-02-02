@@ -24,8 +24,8 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list, o
     role_lengths = []
 
     if output_length is not None:
-        short_sent = filter(lambda e: e == "short", output_length)
-        long_sent = filter(lambda e: e == "long", output_length)
+        short_sent = list(filter(lambda e: e == "short", output_length))
+        long_sent = list(filter(lambda e: e == "long", output_length))
 
         print(f"too long sequences: {round(len(long_sent)/len(output_length))}")
         print(f"too short sequences: {round(len(short_sent)/len(output_length))}")

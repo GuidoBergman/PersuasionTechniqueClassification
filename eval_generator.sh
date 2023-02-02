@@ -21,4 +21,4 @@ module load PyTorch/1.10.0-fosscuda-2020b
 export HF_DATASETS_CACHE="/scratch/$USER/.cache/huggingface/datasets"
 
 # Change this to the correct file name
-python -u main.py --action eval_generator --lang en --qual gold,silver --name t5-base
+python -u main.py --action eval_generator --lang en --qual gold,silver --name t5-base2

@@ -112,8 +112,8 @@ def evaluate_generator(dataset: Dataset, model_name: str):
     label_feat = dataset["train"].features["verbnet"].feature.feature
 
     # uncomment for local testing
-    # dataset["train"] = dataset["train"].select(range(64))
-    # dataset["test"] = dataset["test"].select(range(64))
+    dataset["train"] = dataset["train"].select(range(64))
+    dataset["test"] = dataset["test"].select(range(64))
 
     model = T5ForConditionalGeneration.from_pretrained(
         MODEL_FOLDER / "srl-generator" / model_name)
@@ -124,8 +124,8 @@ def evaluate_generator(dataset: Dataset, model_name: str):
     num_added_tokens = tokenizer.add_tokens(label_feat.names)
 
     # add tokens for role combinations
-    num_added_tokens += tokenizer.add_tokens(
-       [f"{l}," for l in label_feat.names if l != "0"])
+    # num_added_tokens += tokenizer.add_tokens(
+    #   [f"{l}," for l in label_feat.names if l != "0"])
 
     print(f"### {num_added_tokens} tokens have been added to the tokenizer")
 
