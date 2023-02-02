@@ -12,3 +12,4 @@ lxml
 pyyaml
 evaluate
 scikit-learn
+nltk
