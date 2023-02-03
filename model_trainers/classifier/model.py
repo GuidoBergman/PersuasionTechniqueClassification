@@ -208,7 +208,8 @@ def _tokenize_data(dataset: Dataset, tokenizer: RobertaTokenizerFast, label_list
     label_count = len(label_list)
 
     def tokenize_and_align(examples):
-        tokens = tokenizer(examples["tok"], is_split_into_words=True, truncation=True)
+        tokens = tokenizer(
+            examples["tok"], is_split_into_words=True, truncation=True)
 
         labels = []
         for i, label in enumerate(examples["verbnet"]):

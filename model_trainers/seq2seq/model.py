@@ -131,7 +131,8 @@ def evaluate_generator(dataset: Dataset, model_name: str):
 
     model.resize_token_embeddings(len(tokenizer))
 
-    tokenized_data, dataset = _tokenize_data(dataset, tokenizer, label_feat.names)
+    tokenized_data, dataset = _tokenize_data(
+        dataset, tokenizer, label_feat.names)
 
     data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=model)
 
@@ -210,6 +211,7 @@ def post_process_gen_outputs(out: list, tokenizer: T5Tokenizer, class_label: Cla
 def _tokenize_data(ds: Dataset, tokenizer: T5Tokenizer, label_list: list) -> Tuple[Dataset, Dataset]:
 
     remove_examples = set()
+
     def tokenize(examples):
 
         inputs = [" ".join(example) for example in examples["tok"]]

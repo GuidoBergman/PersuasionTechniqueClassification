@@ -3,11 +3,14 @@ import os
 from nltk.stem import PorterStemmer
 from nltk.stem import LancasterStemmer
 from nltk.stem import WordNetLemmatizer
+
+# pylint: disable-next=relative-beyond-top-level
 from ..utils import evaluate_model
 
 # uncomment these if you want to run the training
 # nltk.download('wordnet')
 # nltk.download('punkt')
+
 
 def lemmatizer(token):
 
@@ -16,9 +19,11 @@ def lemmatizer(token):
         return "be"
     return wordnet_lemmatizer.lemmatize(token, pos="v")
 
+
 def lancaster_stemmer(token):
     lancaster = LancasterStemmer()
     return lancaster.stem(token)
+
 
 def porter_stemmer(token):
     porter = PorterStemmer()
@@ -51,7 +56,7 @@ def run_baseline(ds):
                     dict[word] = roles.copy()
                 role = label_list[role_id]
                 dict[word][role] += 1
-                role_frequency[role] +=1
+                role_frequency[role] += 1
 
     print(len(dict))
     with open('data/lookup_table.json', 'w') as fp:
