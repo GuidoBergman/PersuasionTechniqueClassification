@@ -19,8 +19,8 @@ def tuple_arg(arg: str) -> tuple:
     return tuple(arg_list)
 
 
-parser = argparse.ArgumentParser(prog="PMB Semantic Role Tagger",
-                                 description="This program will classify VerbNet semantic roles for the PMB data")
+parser = argparse.ArgumentParser(prog="Persuation techniques classification",
+                                 description="This program will classify persuation techniques")
 
 parser.add_argument("--action", type=str,
                     choices=ACTIONS, help="The specific module to run", required=True)
