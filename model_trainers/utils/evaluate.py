@@ -7,7 +7,7 @@ import numpy as np
 from .torch_utils import class_vector_to_multi_hot_vector
 from typing import Optional
 
-from ..classifier.training import LABEL_LIST
+from ..classifier.models import LABEL_LIST
 
 def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list, output_length: Optional[list] = None) -> None:
 

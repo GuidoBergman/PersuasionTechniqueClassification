@@ -13,7 +13,7 @@ from torch.nn import BCEWithLogitsLoss
 
 # pylint: disable-next=relative-beyond-top-level
 from ..utils import get_device, make_dir_if_not_exists, get_class_weights, evaluate_model, multi_hot_vector_to_class_vector
-from classifier.models import XLMRobertaBase, XLMRobertaLarge
+from ..classifier.models import XLMRobertaBase, XLMRobertaLarge, LABEL_LIST
 
 
 
@@ -21,7 +21,7 @@ from sklearn.metrics import classification_report
 
 MODEL_FOLDER = Path(__file__).parent.parent.parent.resolve() / "models"
 LEARNING_RATE = 1e-05
-LABEL_LIST = ('Attack_on_Reputation', 'Manipulative_Wordding')
+
 
 def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 5, weighted: bool = False):
 
