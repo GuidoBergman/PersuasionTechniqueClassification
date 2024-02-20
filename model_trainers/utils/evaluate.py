@@ -7,15 +7,16 @@ import numpy as np
 from .torch_utils import class_vector_to_multi_hot_vector
 from typing import Optional
 
+from ..classifier.training import LABEL_LIST
 
 def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list, output_length: Optional[list] = None) -> None:
 
     # for checking if role correct at index
     test_roles_ordered = []
-    for i in ds["test"]:
-        test_roles_ordered.append(i["verbnet"])
+    for i in ds["dev"]:
+        test_roles_ordered.append(i["Techniques"])
 
-    label_list = ds["train"].features["verbnet"].feature.feature.names
+    label_list = LABEL_LIST
 
     # for confusion matrix
     predicted_labels_role = []
@@ -38,14 +39,14 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list, o
     # does not pick from the top ones
     for idx, pred in enumerate(predictions):
         pred_order = []
-        for i in range(len(ds["test"][idx]["verbnet"])):
-            true_labels_role.extend(ds["test"][idx]["verbnet"][i])
+        for i in range(len(ds["dev"][idx]["Techniques"])):
+            true_labels_role.extend(ds["dev"][idx]["Techniques"][i])
             try:
                 possible_roles = pred[i]
             except IndexError:
                 print("'### Alignment Error ###")
                 print(pred)
-                print(ds["test"][idx]["verbnet"])
+                print(ds["test"][idx]["Techniques"])
                 continue
             correct_pos = []
             # print(f"possible roles for {test_roles_ordered[idx][i]}: {possible_roles}")
@@ -67,7 +68,7 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list, o
             pred_order.append(correct_pos)
 
         # print(f"original sentence: {inputs[idx]}")
-        # print(f"original labels: {ds['test'][idx]['verbnet']}")
+        # print(f"original labels: {ds['test'][idx]['Techniques']}")
         # print(f"Predicted labels correct?: {pred_order}")
         # print(f"excess or misssing: {role_lengths}")
 

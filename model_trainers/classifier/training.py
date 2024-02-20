@@ -2,7 +2,7 @@ import torch
 import os
 
 from tqdm.auto import tqdm
-from transformers import RobertaTokenizerFast, RobertaForTokenClassification, get_scheduler
+from transformers import get_scheduler,AutoTokenizer
 
 from pathlib import Path
 from datasets import Dataset
@@ -13,30 +13,35 @@ from torch.nn import BCEWithLogitsLoss
 
 # pylint: disable-next=relative-beyond-top-level
 from ..utils import get_device, make_dir_if_not_exists, get_class_weights, evaluate_model, multi_hot_vector_to_class_vector
+from classifier.models import XLMRobertaBase, XLMRobertaLarge
+
+
 
 from sklearn.metrics import classification_report
 
 MODEL_FOLDER = Path(__file__).parent.parent.parent.resolve() / "models"
+LEARNING_RATE = 1e-05
+LABEL_LIST = ('Attack_on_Reputation', 'Manipulative_Wordding')
 
-
-def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, weighted: bool = False):
+def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 5, weighted: bool = False):
 
     # uncomment for local testing
     # dataset["train"] = dataset["train"].select(range(64))
     # dataset["test"] = dataset["test"].select(range(64))
 
-    label_list = dataset["train"].features["verbnet"].feature.feature.names
 
-    model = RobertaForTokenClassification.from_pretrained(
-        "roberta-base", num_labels=len(label_list),
-        id2label={i: l for i, l in enumerate(label_list)},
-        label2id={l: i for i, l in enumerate(label_list)}
-    )
 
-    tokenizer = RobertaTokenizerFast.from_pretrained(
-        "roberta-base", add_prefix_space=True)
+    if model_name == 'xlm-roberta-large':
+        model = XLMRobertaLarge()
+    elif model_name == 'xlm-roberta-base':
+        model = XLMRobertaBase()
+    else:
+        print(f'Invalid model name: {model_name}')
+        return
 
-    tokenized_data = _tokenize_data(dataset, tokenizer, label_list)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, return_dict=False)
+
+    tokenized_data = _tokenize_data(dataset, tokenizer, LABEL_LIST)
 
     device = get_device()
     print(f"### training model on {device} ###")
@@ -46,9 +51,9 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, wei
         tokenized_data["train"], shuffle=True, batch_size=1)
 
     eval_dataloader = DataLoader(
-        tokenized_data["test"], shuffle=True, batch_size=1)
+        tokenized_data["dev"], shuffle=True, batch_size=1)
 
-    optimizer = AdamW(model.parameters(), lr=2e-5)
+    optimizer = AdamW(model.parameters(), lr=LEARNING_RATE)
 
     num_training_steps = num_epochs * len(train_dataloader)
 
@@ -56,9 +61,9 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, wei
         name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps
     )
 
-    loss_weights = torch.ones(len(label_list), device=device)
+    loss_weights = torch.ones(len(LABEL_LIST), device=device)
     if weighted:
-        loss_weights = get_class_weights(dataset["train"], label_list)
+        loss_weights = get_class_weights(dataset["train"], LABEL_LIST)
 
     loss_fct = BCEWithLogitsLoss(pos_weight=loss_weights)
 
@@ -129,7 +134,7 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, wei
         # true_labels = multi_hot_vector_to_class_vector(true_labels)
 
         metrics = classification_report(
-            y_true=true_labels, y_pred=preds, target_names=label_list, zero_division=0, output_dict=True)
+            y_true=true_labels, y_pred=preds, target_names=LABEL_LIST, zero_division=0, output_dict=True)
 
         progress_bar.write("micro average: " + str(metrics["micro avg"]))
         progress_bar.write("macro average: " + str(metrics["macro avg"]))
@@ -140,7 +145,7 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 3, wei
 
     make_dir_if_not_exists(MODEL_FOLDER)
 
-    model.save_pretrained(MODEL_FOLDER / "srl-classifier" / model_name)
+    model.save_pretrained(MODEL_FOLDER / "mwar-classifier" / model_name)
 
 
 def evaluate_classifier(dataset: Dataset, model_name: str):
@@ -149,22 +154,26 @@ def evaluate_classifier(dataset: Dataset, model_name: str):
     # dataset["train"] = dataset["train"].select(range(64))
     # dataset["test"] = dataset["test"].select(range(64))
 
-    label_list = dataset["train"].features["verbnet"].feature.feature.names
 
-    tokenizer = RobertaTokenizerFast.from_pretrained(
-        "roberta-base", add_prefix_space=True)
+    if model_name == 'xlm-roberta-large':
+        model = XLMRobertaLarge().from_pretrained(
+            MODEL_FOLDER / "mwar-classifier" / model_name,  num_labels=len(LABEL_LIST))
+    elif model_name == 'xlm-roberta-base':
+        model = XLMRobertaBase().from_pretrained(
+            MODEL_FOLDER / "mwar-classifier" / model_name,  num_labels=len(LABEL_LIST))
+    else:
+        print(f'Invalid model name: {model_name}')
+        return
 
-    tokenized_data = _tokenize_data(dataset, tokenizer, label_list)
-
-    model = RobertaForTokenClassification.from_pretrained(
-        MODEL_FOLDER / "srl-classifier" / model_name,  num_labels=len(label_list))
+    tokenizer = AutoTokenizer.from_pretrained(model_name, return_dict=False)
+    tokenized_data = _tokenize_data(dataset, tokenizer, LABEL_LIST)
 
     device = get_device()
     print(f"### evaluating model on {device} ###")
     model.to(device)
 
     eval_dataloader = DataLoader(
-        tokenized_data["test"], shuffle=False, batch_size=1)
+        tokenized_data["dev"], shuffle=False, batch_size=1)
 
     model.eval()
 
@@ -203,16 +212,16 @@ def evaluate_classifier(dataset: Dataset, model_name: str):
     evaluate_model(dataset, inputs, true_labels, preds)
 
 
-def _tokenize_data(dataset: Dataset, tokenizer: RobertaTokenizerFast, label_list: list, label_all_tokens: bool = True) -> Dataset:
+def _tokenize_data(dataset: Dataset, tokenizer: AutoTokenizer, label_list: list, label_all_tokens: bool = True) -> Dataset:
 
     label_count = len(label_list)
 
     def tokenize_and_align(examples):
         tokens = tokenizer(
-            examples["tok"], is_split_into_words=True, truncation=True)
+            examples["Tokens"], is_split_into_words=True, truncation=True)
 
         labels = []
-        for i, label in enumerate(examples["verbnet"]):
+        for i, label in enumerate(examples["Techniques"]):
             word_ids = tokens.word_ids(batch_index=i)
             previous_word_idx = None
             label_ids = []
@@ -233,12 +242,12 @@ def _tokenize_data(dataset: Dataset, tokenizer: RobertaTokenizerFast, label_list
             labels.append(label_ids)
 
         tokens["labels"] = labels
-        tokens["input_text"] = examples["tok"]
+        tokens["input_text"] = examples["Tokens"]
 
         return tokens
 
     tokenized_dataset = dataset.map(tokenize_and_align, batched=True, num_proc=os.cpu_count(
-    ), remove_columns=dataset["test"].column_names)
+    ), remove_columns=dataset["dev"].column_names)
 
     tokenized_dataset.set_format(
         "torch", columns=["input_ids", "attention_mask", "labels"], output_all_columns=True)
