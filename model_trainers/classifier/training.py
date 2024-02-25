@@ -19,11 +19,12 @@ from ..classifier.models import XLMRobertaBase, XLMRobertaLarge, LABEL_LIST
 
 from sklearn.metrics import classification_report
 
-MODEL_FOLDER = Path(__file__).parent.parent.parent.resolve() / "models"
-LEARNING_RATE = 1e-05
 
 
-def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 5, weighted: bool = False):
+
+
+def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
+                     num_epochs: int = 5, weighted: bool = False, learning_rate: float = 1e-05):
 
     # uncomment for local testing
     # dataset["train"] = dataset["train"].select(range(64))
@@ -53,7 +54,7 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 5, wei
     eval_dataloader = DataLoader(
         tokenized_data["dev"], shuffle=True, batch_size=1)
 
-    optimizer = AdamW(model.parameters(), lr=LEARNING_RATE)
+    optimizer = AdamW(model.parameters(), lr=learning_rate)
 
     num_training_steps = num_epochs * len(train_dataloader)
 
@@ -143,12 +144,12 @@ def train_classifier(dataset: Dataset, model_name: str, num_epochs: int = 5, wei
 
     progress_bar.close()
 
-    make_dir_if_not_exists(MODEL_FOLDER)
+    make_dir_if_not_exists(output_dir)
 
-    model.save_pretrained(MODEL_FOLDER / "mwar-classifier" / model_name)
+    torch.save(model.state_dict(),output_dir + '/' + model_name)
 
 
-def evaluate_classifier(dataset: Dataset, model_name: str):
+def evaluate_classifier(dataset: Dataset, model_name: str, model_path: str):
 
     # uncomment for local testing
     # dataset["train"] = dataset["train"].select(range(64))
@@ -156,14 +157,14 @@ def evaluate_classifier(dataset: Dataset, model_name: str):
 
 
     if model_name == 'xlm-roberta-large':
-        model = XLMRobertaLarge().from_pretrained(
-            MODEL_FOLDER / "mwar-classifier" / model_name,  num_labels=len(LABEL_LIST))
+        model = XLMRobertaLarge()
     elif model_name == 'xlm-roberta-base':
-        model = XLMRobertaBase().from_pretrained(
-            MODEL_FOLDER / "mwar-classifier" / model_name,  num_labels=len(LABEL_LIST))
+        model = XLMRobertaBase()
     else:
         print(f'Invalid model name: {model_name}')
         return
+
+    model.load_state_dict(torch.load(model_path + '/' + model_name))
 
     tokenizer = AutoTokenizer.from_pretrained(model_name, return_dict=False)
     tokenized_data = _tokenize_data(dataset, tokenizer, LABEL_LIST)

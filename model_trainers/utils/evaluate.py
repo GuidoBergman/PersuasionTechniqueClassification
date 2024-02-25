@@ -16,7 +16,7 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list, o
     for i in ds["dev"]:
         test_roles_ordered.append(i["Techniques"])
 
-    label_list = LABEL_LIST
+    label_list = ['No_Technique'] + LABEL_LIST
 
     # for confusion matrix
     predicted_labels_role = []
@@ -68,7 +68,7 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list, o
             pred_order.append(correct_pos)
 
         # print(f"original sentence: {inputs[idx]}")
-        # print(f"original labels: {ds['test'][idx]['Techniques']}")
+        # print(f"original labels: {ds['dev'][idx]['Techniques']}")
         # print(f"Predicted labels correct?: {pred_order}")
         # print(f"excess or misssing: {role_lengths}")
 
@@ -87,40 +87,7 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list, o
     predicted_labels_role = [label_list[j] for j in predicted_labels_role]
     true_labels_role = [label_list[j] for j in true_labels_role]
 
-    predicted_matrix1, predicted_matrix2 = [], []
-    true_matrix1, true_matrix2 = [], []
-    # matrix_labels = ["0", "Agent", "Attribute", "Co-Theme", "Destination",
-    #                  "Experiencer", "Location", "Patient", "Theme", "PartOf", "Equal"]
-    matrix_labels_1 = ["0", "Agent", "Attribute",
-                       "Experiencer", "Location", "Theme"]
-    matrix_labels_2 = ["0", "InstanceOf", "Sub",
-                       "Material", "Extent", "Co-Patient"]
-    for idx, true in enumerate(true_labels_role):
-        if true in matrix_labels_1:
-            predicted_matrix1.append(predicted_labels_role[idx])
-            true_matrix1.append(true_labels_role[idx])
-        if true in matrix_labels_2:
-            predicted_matrix2.append(predicted_labels_role[idx])
-            true_matrix2.append(true_labels_role[idx])
 
-    # true-pred confusion matrix for high freq
-    cm_display = ConfusionMatrixDisplay.from_predictions(
-        y_true=true_matrix1, y_pred=predicted_matrix1, labels=matrix_labels_1, normalize="true", xticks_rotation="vertical", cmap=plt.cm.YlGn, values_format=".2f")
-
-    plt.rcParams.update(
-        {"axes.labelsize": 20, "xtick.labelsize": 12, "ytick.labelsize": 12})
-    plt.savefig("confusion_matrix_high_freq.png",
-                format="png", dpi=600, bbox_inches="tight")
-
-    # true-pred confusion matrix for low freq
-    cm_display = ConfusionMatrixDisplay.from_predictions(
-        y_true=true_matrix2, y_pred=predicted_matrix2, labels=matrix_labels_2, normalize="true", xticks_rotation="vertical", cmap=plt.cm.YlGn, values_format=".2f")
-    plt.rcParams.update(
-        {"axes.labelsize": 20, "xtick.labelsize": 12, "ytick.labelsize": 12})
-    plt.savefig("confusion_matrix_low_freq.png",
-                format="png", dpi=600, bbox_inches="tight")
-
-    # true-pred confusion matrix for all labels
     cm_display = ConfusionMatrixDisplay.from_predictions(
         y_true=true_labels_role, y_pred=predicted_labels_role, labels=label_list, normalize="true", xticks_rotation="vertical", cmap=plt.cm.YlGn, values_format=".1f")
     plt.rcParams.update(
