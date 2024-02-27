@@ -53,7 +53,9 @@ def class_vector_to_multi_hot_vector(vec: Union[list, List[list]], num_classes: 
 
 
 def multi_hot_vector_to_class_vector(vec: Union[list, List[list]]) -> list:
-
+    if len(vec) == 0:
+        return []
+    
     class_vec = []
     if isinstance(vec[0], list):
         for sub_vec in vec:

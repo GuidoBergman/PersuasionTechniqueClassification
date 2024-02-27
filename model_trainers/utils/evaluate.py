@@ -46,7 +46,7 @@ def evaluate_model(ds: Dataset, inputs: list, labels: list, predictions: list, o
             except IndexError:
                 print("'### Alignment Error ###")
                 print(pred)
-                print(ds["test"][idx]["Techniques"])
+                print(ds["dev"][idx]["Techniques"])
                 continue
             correct_pos = []
             # print(f"possible roles for {test_roles_ordered[idx][i]}: {possible_roles}")
