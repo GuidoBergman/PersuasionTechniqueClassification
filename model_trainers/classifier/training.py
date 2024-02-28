@@ -229,14 +229,14 @@ def _tokenize_data(dataset: Dataset, tokenizer: AutoTokenizer, label_list: list,
             for word_idx in word_ids:
 
                 if word_idx is None:
-                    label_ids.append([-100 for l in range(label_count)])
+                    label_ids.append([-100 for l in range(1,label_count+1)])
                 elif word_idx != previous_word_idx:
                     # only set a single label for now
                     label_ids.append(
                         [1.0 if l in label[word_idx] else 0.0 for l in range(label_count)])
                 else:
-                    label_ids.append([1.0 if l in label[word_idx] else 0.0 for l in range(label_count)]
-                                     if label_all_tokens else [-100 for l in range(label_count)])
+                    label_ids.append([1.0 if l in label[word_idx] else 0.0 for l in range(1,label_count+1)]
+                                     if label_all_tokens else [-100 for l in range(1,label_count+1)])
 
                 previous_word_idx = word_idx
 
