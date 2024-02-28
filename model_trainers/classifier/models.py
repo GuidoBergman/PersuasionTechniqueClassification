@@ -1,7 +1,7 @@
 import torch
 import transformers
 
-LABEL_LIST = ['Attack_on_Reputation', 'Manipulative_Wordding']
+LABEL_LIST = ['No_Propaganda', 'Attack_on_Reputation', 'Manipulative_Wordding']
 COUNT_TECHNIQUES=len(LABEL_LIST)
 
 class XLMRobertaBase(torch.nn.Module):
