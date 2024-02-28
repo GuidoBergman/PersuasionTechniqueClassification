@@ -142,7 +142,7 @@ def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
         progress_bar.write("macro average: " + str(metrics["macro avg"]))
         progress_bar.write("weighted average: " + str(metrics["weighted avg"]))
         progress_bar.write("samples average: " + str(metrics["samples avg"]))
-        #progress_bar.write(f"Confusion matrix: {multilabel_confusion_matrix(true_labels, preds)}")
+        progress_bar.write(f"Confusion matrix: {multilabel_confusion_matrix(true_labels, preds)}")
 
     progress_bar.close()
 
