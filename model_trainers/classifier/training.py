@@ -25,7 +25,7 @@ from sklearn.metrics import multilabel_confusion_matrix
 
 
 def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
-                     num_epochs: int = 5, weighted: bool = False, learning_rate: float = 1e-05):
+                     num_epochs: int = 5, weighted: bool = False, learning_rate: float = 1e-05, model_path: str= None):
 
     # uncomment for local testing
     # dataset["train"] = dataset["train"].select(range(64))
@@ -40,6 +40,10 @@ def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
     else:
         print(f'Invalid model name: {model_name}')
         return
+
+
+    if model_path:
+        model.load_state_dict(torch.load(model_path))
 
     tokenizer = AutoTokenizer.from_pretrained(model_name, return_dict=False)
 
