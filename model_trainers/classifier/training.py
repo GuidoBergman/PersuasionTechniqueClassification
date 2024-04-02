@@ -25,11 +25,12 @@ from sklearn.metrics import multilabel_confusion_matrix
 
 
 def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
-                     num_epochs: int = 5, weighted: bool = False, learning_rate: float = 1e-05, model_path: str= None):
+                     num_epochs: int = 5, weighted: bool = False, learning_rate: float = 1e-05, 
+                     model_path: str= None, evaluation_threshold: float = 0.5):
 
     # uncomment for local testing
-    # dataset["train"] = dataset["train"].select(range(64))
-    # dataset["test"] = dataset["test"].select(range(64))
+    dataset["train"] = dataset["train"].select(range(64))
+    dataset["test"] = dataset["test"].select(range(64))
 
 
 
@@ -130,9 +131,16 @@ def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
             flat_outputs = outputs.squeeze()[ignore_index != -100] #  flat_outputs = outputs.logits.squeeze()[ignore_index != -100]
             flat_labels = labels.squeeze()[ignore_index != -100]
 
-            pred = flat_outputs.heaviside(torch.tensor(
-                [0.0], device=device)).int().tolist()
+            #pred = flat_outputs.heaviside(torch.tensor(
+                #[0.0], device=device)).int().tolist()
+
+            print('Pred after sigmoid: ', {outputs})
+            pred = torch.sigmoid(outputs).cpu().detach().numpy().tolist()
+            print('Pred after sigmoid: ', {pred})
+            pred = np.array(outputs) >= evaluation_threshold
+            print('Pred after filter: ', {pred})
             true_label = flat_labels.int().tolist()
+            print('True lables:' {true_label})
 
             preds.extend(pred)
             true_labels.extend(true_label)
