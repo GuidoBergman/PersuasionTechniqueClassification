@@ -30,7 +30,7 @@ def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
 
     # uncomment for local testing
     dataset["train"] = dataset["train"].select(range(64))
-    dataset["test"] = dataset["test"].select(range(64))
+    dataset["dev"] = dataset["dev"].select(range(64))
 
 
 
