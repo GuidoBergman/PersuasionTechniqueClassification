@@ -138,7 +138,7 @@ def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
             pred = torch.sigmoid(outputs).cpu().detach().numpy().tolist()
             print('Pred after sigmoid: ', pred)
             pred = np.array(outputs) >= evaluation_threshold
-            print('Pred after filter: ', pred}
+            print('Pred after filter: ', pred)
             true_label = flat_labels.int().tolist()
             print('True lables:', true_label)
 
