@@ -140,7 +140,7 @@ def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
             pred = np.array(outputs) >= evaluation_threshold
             print('Pred after filter: ', {pred})
             true_label = flat_labels.int().tolist()
-            print('True lables:' {true_label})
+            print('True lables:', {true_label})
 
             preds.extend(pred)
             true_labels.extend(true_label)
