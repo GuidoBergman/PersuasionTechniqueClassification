@@ -134,10 +134,9 @@ def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
             #pred = flat_outputs.heaviside(torch.tensor(
                 #[0.0], device=device)).int().tolist()
 
-            pred = torch.sigmoid(flat_outputs)#.cpu().detach().numpy().tolist()
-            pred = (np.array(pred) >= evaluation_threshold).astype(int)
-            true_label = flat_labels.int().tolist()
-
+            pred = torch.sigmoid(flat_outputs).cpu().detach().numpy().tolist()
+            pred = (np.array(pred) >= evaluation_threshold).astype(int).tolist()
+            true_label = flat_labels.cpu().detach().numpy().astype(int).tolist()
             preds.extend(pred)
             true_labels.extend(true_label)
 
