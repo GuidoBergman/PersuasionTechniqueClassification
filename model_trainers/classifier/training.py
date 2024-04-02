@@ -43,7 +43,8 @@ def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
 
 
     if model_path:
-        model.load_state_dict(torch.load(model_path))
+       # model.load_state_dict(torch.load(model_path))
+       model = torch.load(model_path)
 
     tokenizer = AutoTokenizer.from_pretrained(model_name, return_dict=False)
 
