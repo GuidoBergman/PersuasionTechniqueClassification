@@ -4,7 +4,7 @@ tqdm
 numpy
 matplotlib
 pandas
-transformers
+transformers===4.39.1
 torch
 tokenizers
 sentencepiece
@@ -15,4 +15,4 @@ evaluate
 scikit-learn
 nltk
 bitsandbytes
-peft
+peft==0.8.2
