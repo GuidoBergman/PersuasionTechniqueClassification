@@ -10,6 +10,7 @@ from datasets import Dataset
 from torch.utils.data import DataLoader
 from torch.optim import AdamW
 from torch.nn import BCEWithLogitsLoss
+import torch
 
 # pylint: disable-next=relative-beyond-top-level
 from ..utils import get_device, make_dir_if_not_exists, get_class_weights, evaluate_model, multi_hot_vector_to_class_vector
@@ -102,7 +103,7 @@ def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
             labels = batch.pop("labels")
             batch.pop("input_text")
 
-            batch = {k: v.to(device) for k, v in batch.items()}
+            batch = {k: v.to(device) if not isinstance(v, list) else torch.tensor(v).to(device) for k, v in batch.items()}
 
             outputs = model(**batch)
 
@@ -137,7 +138,7 @@ def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
             labels = batch.pop("labels")
             batch.pop("input_text")
 
-            batch = {k: v.to(device) for k, v in batch.items()}
+            batch = {k: v.to(device) if not isinstance(v, list) else torch.tensor(v).to(device) for k, v in batch.items()}
 
             with torch.no_grad():
                 outputs = model(**batch)
