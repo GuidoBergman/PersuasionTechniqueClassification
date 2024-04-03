@@ -62,8 +62,7 @@ def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
         except TypeError:
             config = AutoConfig.from_pretrained(model_name)
             config.num_labels = COUNT_TECHNIQUES
-            config.ignore_mismatched_sizes=True
-            model = AutoModelForTokenClassification.from_pretrained(model_name, config=config) 
+            model = AutoModelForTokenClassification.from_pretrained(model_name, config=config, ignore_mismatched_sizes=True) 
 
     tokenizer = AutoTokenizer.from_pretrained(model_name, return_dict=False)
 
