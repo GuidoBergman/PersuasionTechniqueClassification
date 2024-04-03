@@ -14,3 +14,5 @@ pyyaml
 evaluate
 scikit-learn
 nltk
+bitsandbytes
+peft

@@ -2,7 +2,7 @@ import torch
 import os
 
 from tqdm.auto import tqdm
-from transformers import get_scheduler,AutoTokenizer
+from transformers import get_scheduler,AutoTokenizer, AutoModelForTokenClassification
 
 from pathlib import Path
 from datasets import Dataset
@@ -13,19 +13,24 @@ from torch.nn import BCEWithLogitsLoss
 
 # pylint: disable-next=relative-beyond-top-level
 from ..utils import get_device, make_dir_if_not_exists, get_class_weights, evaluate_model, multi_hot_vector_to_class_vector
-from ..classifier.models import XLMRobertaBase, XLMRobertaLarge, LABEL_LIST
+from ..classifier.models import XLMRobertaBase, XLMRobertaLarge, LABEL_LIST, COUNT_TECHNIQUES
 
 
 
 from sklearn.metrics import classification_report
 from sklearn.metrics import multilabel_confusion_matrix
+from peft import prepare_model_for_int8_training,LoraConfig, TaskType, get_peft_model
 
 
 
 
 
 def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
-                     num_epochs: int = 5, weighted: bool = False, learning_rate: float = 1e-05):
+                     num_epochs: int = 5, weighted: bool = False, 
+                     learning_rate: float = 1e-05,
+                     batch_size: int = 1,
+                     r: int = 32,
+                     lora_dropout: float = 0.1):
 
     # uncomment for local testing
     # dataset["train"] = dataset["train"].select(range(64))
@@ -37,9 +42,21 @@ def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
         model = XLMRobertaLarge()
     elif model_name == 'xlm-roberta-base':
         model = XLMRobertaBase()
+    elif model_name == 'meta-llama/Llama-2-7b' or model_name == 'google/gemma-2b':
+        if model_name == 'meta-llama/Llama-2-7b':
+            model = Llama()
+        elif model_name == 'google/gemma-2b':
+            model = Gemma()
+
+        lora_config = LoraConfig(
+            r=r,
+            lora_dropout=lora_dropout,
+            task_type=TaskType.TOKEN_CLS,
+            target_modules='all-linear'
+        )
+        model = get_peft_model(model, lora_config)
     else:
-        print(f'Invalid model name: {model_name}')
-        return
+        model = AutoModelForTokenClassification.from_pretrained(model_name, num_label=COUNT_TECHNIQUES)
 
     tokenizer = AutoTokenizer.from_pretrained(model_name, return_dict=False)
 
@@ -50,10 +67,10 @@ def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
     model.to(device)
 
     train_dataloader = DataLoader(
-        tokenized_data["train"], shuffle=True, batch_size=1)
+        tokenized_data["train"], shuffle=True, batch_size=batch_size)
 
     eval_dataloader = DataLoader(
-        tokenized_data["dev"], shuffle=True, batch_size=1)
+        tokenized_data["dev"], shuffle=True, batch_size=batch_size)
 
     optimizer = AdamW(model.parameters(), lr=learning_rate)
 
