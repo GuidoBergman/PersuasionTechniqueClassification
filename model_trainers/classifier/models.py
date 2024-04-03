@@ -37,7 +37,7 @@ class XLMRobertaLarge(torch.nn.Module):
 
 
 class Gemma(transformers.GemmaPreTrainedModel):
-    def __init__(self, config):
+    def __init__(self):
        # super(XLMRobertaBase, self).__init__()
         config = transformers.GemmaConfig()
         config.problem_type = "multi_label_classification"
@@ -86,7 +86,7 @@ class Gemma(transformers.GemmaPreTrainedModel):
 
 
 class Llama(transformers.LlamaPreTrainedModel):
-    def __init__(self, config):
+    def __init__(self):
         config = transformers.LlamaConfig()
         config.problem_type = "multi_label_classification"
         config.num_labels = COUNT_TECHNIQUES
