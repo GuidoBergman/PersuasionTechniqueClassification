@@ -2,7 +2,7 @@ import torch
 import os
 
 from tqdm.auto import tqdm
-from transformers import get_scheduler,AutoTokenizer, AutoModelForTokenClassification
+from transformers import get_scheduler,AutoTokenizer, AutoModelForTokenClassification, AutoConfig
 
 from pathlib import Path
 from datasets import Dataset
@@ -56,7 +56,12 @@ def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
         )
         model = get_peft_model(model, lora_config)
     else:
-        model = AutoModelForTokenClassification.from_pretrained(model_name, num_label=COUNT_TECHNIQUES)
+        try:
+            model = AutoModelForTokenClassification.from_pretrained(model_name, num_label=COUNT_TECHNIQUES)
+        except TypeError:
+            config = AutoConfig.from_pretrained(model_name)
+            config.num_labels = COUNT_TECHNIQUES
+            model = AutoModelForTokenClassification.from_pretrained(model_name, config=config) 
 
     tokenizer = AutoTokenizer.from_pretrained(model_name, return_dict=False)
 
