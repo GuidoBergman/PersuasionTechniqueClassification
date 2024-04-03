@@ -58,10 +58,11 @@ def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
         model = get_peft_model(model, lora_config)
     else:
         try:
-            model = AutoModelForTokenClassification.from_pretrained(model_name, num_label=COUNT_TECHNIQUES)
+            model = AutoModelForTokenClassification.from_pretrained(model_name, num_label=COUNT_TECHNIQUES, ignore_mismatched_sizes=True)
         except TypeError:
             config = AutoConfig.from_pretrained(model_name)
             config.num_labels = COUNT_TECHNIQUES
+            config.ignore_mismatched_sizes=True
             model = AutoModelForTokenClassification.from_pretrained(model_name, config=config) 
 
     tokenizer = AutoTokenizer.from_pretrained(model_name, return_dict=False)
