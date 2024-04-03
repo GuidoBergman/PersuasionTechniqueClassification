@@ -13,7 +13,7 @@ from torch.nn import BCEWithLogitsLoss
 
 # pylint: disable-next=relative-beyond-top-level
 from ..utils import get_device, make_dir_if_not_exists, get_class_weights, evaluate_model, multi_hot_vector_to_class_vector
-from ..classifier.models import XLMRobertaBase, XLMRobertaLarge, LABEL_LIST, COUNT_TECHNIQUES
+from ..classifier.models import XLMRobertaBase, XLMRobertaLarge, Gemma, Llama, LABEL_LIST, COUNT_TECHNIQUES
 
 
 
