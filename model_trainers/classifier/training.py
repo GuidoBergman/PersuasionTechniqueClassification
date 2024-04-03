@@ -109,7 +109,10 @@ def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
 
             ignore_index = labels.mean(-1).squeeze().int()
 
-            flat_outputs = outputs.squeeze()[ignore_index != -100] #  flat_outputs = outputs.logits.squeeze()[ignore_index != -100]
+            try:
+              flat_outputs = outputs.squeeze()[ignore_index != -100]
+            except AttributeError: 
+              flat_outputs = outputs.logits.squeeze()[ignore_index != -100]
             flat_labels = labels.squeeze()[ignore_index != -100]
 
             flat_outputs = flat_outputs.to(device)
@@ -145,7 +148,10 @@ def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
 
             ignore_index = labels.mean(-1).squeeze().int()
 
-            flat_outputs = outputs.squeeze()[ignore_index != -100] #  flat_outputs = outputs.logits.squeeze()[ignore_index != -100]
+            try:
+              flat_outputs = outputs.squeeze()[ignore_index != -100]
+            except AttributeError: 
+              flat_outputs = outputs.logits.squeeze()[ignore_index != -100]
             flat_labels = labels.squeeze()[ignore_index != -100]
 
             pred = flat_outputs.heaviside(torch.tensor(
