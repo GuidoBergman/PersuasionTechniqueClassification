@@ -43,8 +43,8 @@ def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
         model = XLMRobertaLarge()
     elif model_name == 'xlm-roberta-base':
         model = XLMRobertaBase()
-    elif model_name == 'meta-llama/Llama-2-7b' or model_name == 'google/gemma-2b':
-        if model_name == 'meta-llama/Llama-2-7b':
+    elif model_name == 'meta-llama/Llama-2-7b-hf' or model_name == 'google/gemma-2b':
+        if model_name == 'meta-llama/Llama-2-7b-hf':
             model = Llama()
         elif model_name == 'google/gemma-2b':
             model = Gemma()
