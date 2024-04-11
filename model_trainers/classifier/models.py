@@ -93,7 +93,7 @@ class Llama(transformers.LlamaPreTrainedModel):
         config.return_dict=False
 
         super().__init__(config)
-        self.l1 = transformers.LlamaModel.from_pretrained('meta-llama/Llama-2-7b', return_dict=False)
+        self.l1 = transformers.LlamaModel.from_pretrained('meta-llama/Llama-2-7b-hf', return_dict=False)
         self.l2 = torch.nn.Dropout(0.3)
         self.l3 = torch.nn.Linear(2048, COUNT_TECHNIQUES)
 
