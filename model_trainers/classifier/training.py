@@ -252,7 +252,7 @@ def _tokenize_data(dataset: Dataset, tokenizer: AutoTokenizer, label_list: list,
 
     def tokenize_and_align(examples):
         tokens = tokenizer(
-            examples["Tokens"], is_split_into_words=True, truncation=True)
+            examples["Tokens"], is_split_into_words=True, truncation=True, padding=True)
 
         labels = []
         for i, label in enumerate(examples["Techniques"]):
