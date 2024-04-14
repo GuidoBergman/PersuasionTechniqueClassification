@@ -2,7 +2,7 @@ import torch
 import os
 
 from tqdm.auto import tqdm
-from transformers import get_scheduler,AutoTokenizer, AutoModelForTokenClassification, AutoConfig
+from transformers import get_scheduler,AutoTokenizer, AutoModelForTokenClassification, AutoConfig, DataCollatorWithPadding
 
 from pathlib import Path
 from datasets import Dataset
@@ -72,11 +72,13 @@ def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
     print(f"### training model on {device} ###")
     model.to(device)
 
+
+    data_collator = DataCollatorWithPadding(tokenizer)
     train_dataloader = DataLoader(
-        tokenized_data["train"], shuffle=True, batch_size=batch_size)
+        tokenized_data["train"], shuffle=True, batch_size=batch_size, collate_fn=data_collator)
 
     eval_dataloader = DataLoader(
-        tokenized_data["dev"], shuffle=True, batch_size=batch_size)
+        tokenized_data["dev"], shuffle=True, batch_size=batch_size, collate_fn=data_collator)
 
     optimizer = AdamW(model.parameters(), lr=learning_rate)
 
