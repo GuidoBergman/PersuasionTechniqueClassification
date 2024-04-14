@@ -73,7 +73,7 @@ def train_classifier(dataset: Dataset, model_name: str, output_dir: str,
     model.to(device)
 
 
-    data_collator = DataCollatorWithPadding(tokenizer)
+    data_collator = None #data_collator = DataCollatorWithPadding(tokenizer)
     train_dataloader = DataLoader(
         tokenized_data["train"], shuffle=True, batch_size=batch_size, collate_fn=data_collator)
 
